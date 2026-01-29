@@ -7,15 +7,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Test connect db
-  const dataSource = app.get(DataSource);
-  try {
-    await dataSource.query('SELECT 1');
-    console.log('Conexión exitosa a la base de datos');
-  } catch (error) {
-    console.error('Error de conexión:', error);
-  }
-
   app.useGlobalPipes(
     // Para las validaciones
     new ValidationPipe({
@@ -25,6 +16,6 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 4000);
+  await app.listen(parseInt(process.env.PORT!) ?? 4000);
 }
 bootstrap();
