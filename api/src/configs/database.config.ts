@@ -15,13 +15,10 @@ export default () => ({
 
         ssl: {
             rejectUnauthorized: true,
-            ca: process.env.DB_SSL,
+            ca: process.env.DB_SSL!.replace(/\\n/g, '\n'),
         },
 
-        options: {
-            encrypt: false,
-            trustServerCertificate: true,
-        },
+
         synchronize: process.env.DB_SYNCHRONIZE === 'true' || false,
         autoLoadEntities: true,
     }

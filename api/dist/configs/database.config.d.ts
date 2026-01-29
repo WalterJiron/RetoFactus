@@ -13,11 +13,7 @@ declare const _default: () => {
         };
         ssl: {
             rejectUnauthorized: boolean;
-            ca: string | undefined;
-        };
-        options: {
-            encrypt: boolean;
-            trustServerCertificate: boolean;
+            ca: string;
         };
         synchronize: boolean;
         autoLoadEntities: boolean;
