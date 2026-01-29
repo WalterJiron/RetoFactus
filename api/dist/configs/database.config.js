@@ -17,8 +17,9 @@ exports.default = () => ({
             rejectUnauthorized: true,
             ca: process.env.DB_SSL.replace(/\\n/g, '\n'),
         },
-        synchronize: process.env.DB_SYNCHRONIZE === 'true' || false,
+        synchronize: false,
         autoLoadEntities: true,
+        logging: ['error']
     }
 });
 //# sourceMappingURL=database.config.js.map

@@ -19,7 +19,9 @@ export default () => ({
         },
 
 
-        synchronize: process.env.DB_SYNCHRONIZE === 'true' || false,
+        synchronize: false,
         autoLoadEntities: true,
+
+        logging: ['error']
     }
 });

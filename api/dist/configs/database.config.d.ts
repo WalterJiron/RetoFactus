@@ -17,6 +17,7 @@ declare const _default: () => {
         };
         synchronize: boolean;
         autoLoadEntities: boolean;
+        logging: string[];
     };
 };
 export default _default;
