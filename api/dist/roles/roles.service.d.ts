@@ -4,9 +4,10 @@ import { DataSource } from 'typeorm';
 export declare class RolesService {
     private readonly db;
     constructor(db: DataSource);
-    create(createRoleDto: CreateRoleDto): string;
+    create({ name, description }: CreateRoleDto): Promise<any>;
     findAll(): Promise<any>;
     findOne(id: number): Promise<any>;
-    update(id: number, updateRoleDto: UpdateRoleDto): string;
-    remove(id: number): string;
+    update(id: number, { name, description }: UpdateRoleDto): Promise<any>;
+    remove(id: number): Promise<any>;
+    restore(id: number): Promise<any>;
 }

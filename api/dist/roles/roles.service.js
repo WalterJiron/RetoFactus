@@ -12,12 +12,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RolesService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
+const ResponseValidations_1 = require("../utils/ResponseValidations");
 let RolesService = class RolesService {
     constructor(db) {
         this.db = db;
     }
-    create(createRoleDto) {
-        return 'This action adds a new role';
+    async create({ name, description }) {
+        const result = await this.db.query(`
+        SELECT ProcInsertRol($1, $2) AS message;
+      `, [
+            name,
+            description,
+        ]);
+        if (!result.length)
+            throw new common_1.InternalServerErrorException("Error interno al ingresar un rol");
+        return ResponseValidations_1.ResponseValidation.forMessage(result, "registrado correctamente");
     }
     async findAll() {
         const roles = await this.db.query(`
@@ -55,11 +64,33 @@ let RolesService = class RolesService {
             throw new common_1.BadRequestException(`El rol con id ${id} no existe`);
         return role[0];
     }
-    update(id, updateRoleDto) {
-        return `This action updates a #${id} role`;
+    async update(id, { name, description }) {
+        const result = await this.db.query(`
+        SELECT ProcUpdateRol_serial($1,$2,$3) as message;
+      `, [
+            id,
+            name,
+            description,
+        ]);
+        if (!result.length)
+            throw new common_1.BadRequestException(`El rol con el id "${id}" no se encuentar en el sistema.`);
+        return ResponseValidations_1.ResponseValidation.forMessage(result, "actualizado correctamente");
     }
-    remove(id) {
-        return `This action removes a #${id} role`;
+    async remove(id) {
+        const result = await this.db.query(`
+        SELECT ProcDeleteRol($1) AS message;
+      `, [id]);
+        if (!result.length)
+            throw new common_1.BadRequestException(`El rol con el id "${id}" no se encuentar en el sistema.`);
+        return ResponseValidations_1.ResponseValidation.forMessage(result, "desactivado correctamente");
+    }
+    async restore(id) {
+        const result = await this.db.query(`
+          SELECT ProcRecoverRol($1) AS message;
+        `, [id]);
+        if (!result.length)
+            throw new common_1.BadRequestException(`El rol con el id ${id} no se encuentra en el sistema.`);
+        return ResponseValidations_1.ResponseValidation.forMessage(result, "recuperado correctamente");
     }
 };
 exports.RolesService = RolesService;

@@ -56,6 +56,7 @@ CREATE TABLE Product(
     Description TEXT NOT NULL,
     IdSubCategory INT REFERENCES SubCategory(IdSubCategory) ON DELETE RESTRICT ON UPDATE CASCADE NOT NULL,
     Stock INT CHECK(Stock >= 0) NOT NULL,
+    MeasurementUnit INT NOT NULL,
 
     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     DateUpdate TIMESTAMPTZ,
