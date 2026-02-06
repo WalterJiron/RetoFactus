@@ -9,7 +9,6 @@ const server = express();
 let cachedApp: any;
 
 export default async (req: any, res: any) => {
-    // Si la app no existe, la creamos. Si ya existe, la reutilizamos.
     if (!cachedApp) {
         const app = await NestFactory.create(
             AppModule,
@@ -23,6 +22,7 @@ export default async (req: any, res: any) => {
             .build();
 
         const document = SwaggerModule.createDocument(app, config);
+
         SwaggerModule.setup('/', app, document, {
             customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
             customJs: [
