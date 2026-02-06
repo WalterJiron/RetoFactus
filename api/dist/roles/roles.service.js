@@ -73,7 +73,7 @@ let RolesService = class RolesService {
             description,
         ]);
         if (!result.length)
-            throw new common_1.BadRequestException(`El rol con el id ${id} no se encuentar en el sistema.`);
+            throw new common_1.BadRequestException(`El rol con el id ${id} no se encuentra en el sistema.`);
         return ResponseValidations_1.ResponseValidation.forMessage(result, "actualizado correctamente");
     }
     async remove(id) {
@@ -81,7 +81,7 @@ let RolesService = class RolesService {
         SELECT ProcDeleteRol($1) AS message;
       `, [id]);
         if (!result.length)
-            throw new common_1.BadRequestException(`El rol con el id ${id} no se encuentar en el sistema.`);
+            throw new common_1.BadRequestException(`El rol con el id ${id} no se encuentra en el sistema.`);
         return ResponseValidations_1.ResponseValidation.forMessage(result, "desactivado correctamente");
     }
     async restore(id) {

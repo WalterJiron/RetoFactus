@@ -97,7 +97,7 @@ let UsersService = class UsersService {
         SELECT restore_users($1) AS message;
       `, [id]);
         if (!result.length)
-            throw new common_1.BadRequestException(`Error al ingresar el usuario con el ID: ${id}`);
+            throw new common_1.BadRequestException(`Error al restaurar el usuario con ID: ${id}`);
         return ResponseValidations_1.ResponseValidation.forMessage(result, "correctamente");
     }
 };
