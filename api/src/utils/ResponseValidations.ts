@@ -1,5 +1,4 @@
 import { BadRequestException, InternalServerErrorException } from "@nestjs/common";
-import { measureMemory } from "vm";
 
 interface DatabaseResponse {
     message: string;

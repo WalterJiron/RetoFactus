@@ -9,20 +9,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsService = void 0;
 const common_1 = require("@nestjs/common");
 let ProductsService = class ProductsService {
-    create(createProductDto) {
+    async create(createProductDto) {
         return 'This action adds a new product';
     }
-    findAll() {
+    async findAll() {
         return `This action returns all products`;
     }
-    findOne(id) {
+    async findOne(id) {
         return `This action returns a #${id} product`;
     }
-    update(id, updateProductDto) {
+    async update(id, updateProductDto) {
         return `This action updates a #${id} product`;
     }
-    remove(id) {
+    async remove(id) {
         return `This action removes a #${id} product`;
+    }
+    async restore(id) {
+        return '';
     }
 };
 exports.ProductsService = ProductsService;

@@ -11,7 +11,7 @@ declare const _default: () => {
             idleTimeoutMillis: number;
             connectionTimeoutMillis: number;
         };
-        ssl: {
+        ssl: boolean | {
             rejectUnauthorized: boolean;
             ca: string;
         };

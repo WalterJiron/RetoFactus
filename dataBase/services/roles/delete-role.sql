@@ -45,13 +45,6 @@ BEGIN
             RETURN;
         END IF;
         
-        -- También verificar si hay otros registros dependientes
-        -- Ejemplo: permisos, configuraciones, etc.
-        -- IF EXISTS (SELECT 1 FROM Permisos WHERE IdRole = p_idrole) THEN
-        --     mensaje := 'No se puede eliminar el rol porque tiene permisos asignados';
-        --     RETURN;
-        -- END IF;
-        
         -- Realizar soft delete
         UPDATE Roles SET 
             Active = FALSE, 
@@ -67,7 +60,6 @@ BEGIN
             RAISE EXCEPTION '%', mensaje;
         END IF;
         
-        -- Éxito
         mensaje := format('Rol %s desactivado correctamente', v_rol_name);
         
     EXCEPTION

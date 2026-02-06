@@ -12,7 +12,7 @@ DECLARE
     v_active BOOLEAN;
     v_row_count INT;
 BEGIN
-    -- Validación 1: Campos obligatorios
+    --Campos obligatorios
     IF p_idrole IS NULL OR p_nombre_rol IS NULL OR p_descripcion IS NULL THEN
         mensaje := 'Todos los campos son obligatorios';
         RETURN;
@@ -22,13 +22,13 @@ BEGIN
     v_trim_nombre := TRIM(p_nombre_rol);
     v_trim_desc := TRIM(p_descripcion);
     
-    -- Validación 2: Longitud del nombre
+    --Longitud del nombre
     IF LENGTH(v_trim_nombre) < 3 OR LENGTH(v_trim_nombre) > 50 THEN
         mensaje := 'El nombre del rol debe tener al menos 3 caracteres y maximo 50';
         RETURN;
     END IF;
     
-    -- Validación 3: Longitud de la descripción
+    --Longitud de la descripción
     IF LENGTH(v_trim_desc) < 10 THEN
         mensaje := 'La descripcion debe tener al menos 10 caracteres';
         RETURN;

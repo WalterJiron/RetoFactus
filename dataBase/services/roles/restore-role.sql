@@ -9,7 +9,7 @@ DECLARE
     v_row_count INT;
     v_existe_activo BOOLEAN;
 BEGIN
-    -- Validación 1: Código obligatorio
+    -- Código obligatorio
     IF p_idrole IS NULL OR p_idrole <= 0 THEN
         mensaje := 'El código de rol es obligatorio y debe ser un número válido';
         RETURN;

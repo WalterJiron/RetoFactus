@@ -1,0 +1,43 @@
+services:
+  db:
+    build: ./dataBase
+    container_name: dataBase_RetoFactus
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin.123
+      POSTGRES_DB: retoFactus
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d management_System"]
+      interval: 10s
+      timeout: 15s
+      retries: 5
+
+  api:
+    build: ./api
+    container_name: Api_RetoFactus
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PORT=4000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=admin
+      - DB_PASSWORD=admin.123
+      - DB_DATABASE=retoFactus
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./api/src:/app/api/src # Solo monta el código fuente
+      - ./api/package.json:/app/api/package.json # Monta package.json
+      - ./api/yarn.lock:/app/api/yarn.lock # Monta yarn.lock
+    restart: unless-stopped
+    command: yarn start:dev # Usar comando de desarrollo
+
+volumes:
+  postgres_data:

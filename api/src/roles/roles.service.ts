@@ -82,7 +82,7 @@ export class RolesService {
       ]
     );
 
-    if (!result.length) throw new BadRequestException(`El rol con el id "${id}" no se encuentar en el sistema.`);
+    if (!result.length) throw new BadRequestException(`El rol con el id ${id} no se encuentar en el sistema.`);
 
     return ResponseValidation.forMessage(result, "actualizado correctamente");
   }
@@ -94,7 +94,7 @@ export class RolesService {
       `, [id]
     );
 
-    if (!result.length) throw new BadRequestException(`El rol con el id "${id}" no se encuentar en el sistema.`);
+    if (!result.length) throw new BadRequestException(`El rol con el id ${id} no se encuentar en el sistema.`);
 
     return ResponseValidation.forMessage(result, "desactivado correctamente");
   }

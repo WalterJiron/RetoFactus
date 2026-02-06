@@ -13,10 +13,10 @@ export default () => ({
             connectionTimeoutMillis: 2000,
         },
 
-        ssl: {
+        ssl: process.env.DB_SSL ? {
             rejectUnauthorized: true,
             ca: process.env.DB_SSL!.replace(/\\n/g, '\n'),
-        },
+        } : false,
 
 
         synchronize: false,
