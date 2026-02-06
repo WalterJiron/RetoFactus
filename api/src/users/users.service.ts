@@ -3,13 +3,12 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DataSource } from 'typeorm';
 import { ResponseValidation } from '../utils/ResponseValidations';
-import { time } from 'console';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly db: DataSource) { }
 
-  async create({ nameUser, email, password, rol }: CreateUserDto) {
+  async create({ nameUser, email, password, role }: CreateUserDto) {
     const result = await this.db.query(
       `
         SELECT create_users($1, $2, $3, $4) AS message
@@ -18,7 +17,7 @@ export class UsersService {
         nameUser,
         email,
         password,
-        rol,
+        role,
       ]
     );
 
@@ -78,14 +77,14 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, { nameUser, email, password, rol }: UpdateUserDto) {
+  async update(id: number, { nameUser, email, password, role }: UpdateUserDto) {
     const result = await this.db.query(
       `
         SELECT update_users($1, $2, $3, $4, $5) AS message;
       `,
       [
         id, nameUser,
-        email, password, rol,
+        email, password, role,
       ]
     );
 
@@ -113,7 +112,7 @@ export class UsersService {
       `, [id]
     );
 
-    if (!result.length) throw new BadRequestException(`Error al ingresar el usuario con el ID: ${id}`);
+    if (!result.length) throw new BadRequestException(`Error al restaurar el usuario con ID: ${id}`);
 
     return ResponseValidation.forMessage(result, "correctamente");
   }

@@ -3,7 +3,6 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { DataSource } from 'typeorm';
 import { ResponseValidation } from '../utils/ResponseValidations';
-import { retry } from 'rxjs';
 
 @Injectable()
 export class RolesService {
@@ -82,7 +81,7 @@ export class RolesService {
       ]
     );
 
-    if (!result.length) throw new BadRequestException(`El rol con el id ${id} no se encuentar en el sistema.`);
+    if (!result.length) throw new BadRequestException(`El rol con el id ${id} no se encuentra en el sistema.`);
 
     return ResponseValidation.forMessage(result, "actualizado correctamente");
   }
@@ -94,7 +93,7 @@ export class RolesService {
       `, [id]
     );
 
-    if (!result.length) throw new BadRequestException(`El rol con el id ${id} no se encuentar en el sistema.`);
+    if (!result.length) throw new BadRequestException(`El rol con el id ${id} no se encuentra en el sistema.`);
 
     return ResponseValidation.forMessage(result, "desactivado correctamente");
   }

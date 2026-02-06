@@ -5,6 +5,9 @@ import dbConfig from './configs/database.config';
 import { DatabaseModule } from './connection/database.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
+import { CategorysModule } from './categorys/categorys.module';
+import { AuthModule } from './auth/auth.module';
+import { SubCategoryModule } from './sub_category/sub_category.module';
 
 @Module({
   imports: [
@@ -19,6 +22,12 @@ import { ProductsModule } from './products/products.module';
     UsersModule,
 
     ProductsModule,
+
+    CategorysModule,
+
+    AuthModule,
+
+    SubCategoryModule,
   ],
   controllers: [],
   providers: [],

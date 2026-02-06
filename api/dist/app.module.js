@@ -14,6 +14,9 @@ const database_config_1 = require("./configs/database.config");
 const database_module_1 = require("./connection/database.module");
 const users_module_1 = require("./users/users.module");
 const products_module_1 = require("./products/products.module");
+const categorys_module_1 = require("./categorys/categorys.module");
+const auth_module_1 = require("./auth/auth.module");
+const sub_category_module_1 = require("./sub_category/sub_category.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -28,6 +31,9 @@ exports.AppModule = AppModule = __decorate([
             roles_module_1.RolesModule,
             users_module_1.UsersModule,
             products_module_1.ProductsModule,
+            categorys_module_1.CategorysModule,
+            auth_module_1.AuthModule,
+            sub_category_module_1.SubCategoryModule,
         ],
         controllers: [],
         providers: [],

@@ -17,14 +17,14 @@ let UsersService = class UsersService {
     constructor(db) {
         this.db = db;
     }
-    async create({ nameUser, email, password, rol }) {
+    async create({ nameUser, email, password, role }) {
         const result = await this.db.query(`
         SELECT create_users($1, $2, $3, $4) AS message
       `, [
             nameUser,
             email,
             password,
-            rol,
+            role,
         ]);
         if (!result.length)
             throw new common_1.BadRequestException('Error interno al crear el usuario.');
@@ -73,12 +73,12 @@ let UsersService = class UsersService {
             throw new common_1.BadRequestException(`El usuario con el id ${id} no se encuentra en el sistema.`);
         return user;
     }
-    async update(id, { nameUser, email, password, rol }) {
+    async update(id, { nameUser, email, password, role }) {
         const result = await this.db.query(`
         SELECT update_users($1, $2, $3, $4, $5) AS message;
       `, [
             id, nameUser,
-            email, password, rol,
+            email, password, role,
         ]);
         if (!result.length)
             throw new common_1.BadRequestException('Error al actualizar el usuario.');
