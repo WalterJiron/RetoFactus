@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const products_service_1 = require("./products.service");
 const create_product_dto_1 = require("./dto/create-product.dto");
 const update_product_dto_1 = require("./dto/update-product.dto");
+const auth_decorator_1 = require("../auth/decorators/auth.decorator");
+const role_enum_1 = require("../auth/enums/role.enum");
 let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
@@ -84,6 +86,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "restore", null);
 exports.ProductsController = ProductsController = __decorate([
+    (0, auth_decorator_1.Auth)(role_enum_1.Role.Admin),
     (0, common_1.Controller)('products'),
     __metadata("design:paramtypes", [products_service_1.ProductsService])
 ], ProductsController);

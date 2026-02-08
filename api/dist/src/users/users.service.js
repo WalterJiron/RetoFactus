@@ -13,6 +13,8 @@ exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const ResponseValidations_1 = require("../utils/ResponseValidations");
+const auth_decorator_1 = require("../auth/decorators/auth.decorator");
+const role_enum_1 = require("../auth/enums/role.enum");
 let UsersService = class UsersService {
     constructor(db) {
         this.db = db;
@@ -66,8 +68,7 @@ let UsersService = class UsersService {
         FROM users AS U
         LEFT JOIN roles AS R
           ON U.roleuser = R.idrole
-        WHERE U.iduser = $1
-        ORDER BY U.iduser DESC;
+        WHERE U.iduser = $1;
       `, [id]);
         if (!user.length)
             throw new common_1.BadRequestException(`El usuario con el id ${id} no se encuentra en el sistema.`);
@@ -103,6 +104,7 @@ let UsersService = class UsersService {
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
+    (0, auth_decorator_1.Auth)(role_enum_1.Role.Admin),
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [typeorm_1.DataSource])
 ], UsersService);

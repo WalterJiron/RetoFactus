@@ -52,6 +52,7 @@ CREATE TABLE SubCategory(
 
 CREATE TABLE Product(
     IdProduct BIGSERIAL PRIMARY KEY NOT NULL,
+    code_reference TEXT,-----
     NameProduct VARCHAR(80) NOT NULL,
     Description TEXT NOT NULL,
     IdSubCategory INT REFERENCES SubCategory(IdSubCategory) ON DELETE RESTRICT ON UPDATE CASCADE NOT NULL,

@@ -8,6 +8,7 @@ import { ProductsModule } from './products/products.module';
 import { CategorysModule } from './categorys/categorys.module';
 import { AuthModule } from './auth/auth.module';
 import { SubCategoryModule } from './sub_category/sub_category.module';
+import { ThrottleConfigModule } from './configs/throttle-config.module';
 
 @Module({
   imports: [
@@ -16,6 +17,8 @@ import { SubCategoryModule } from './sub_category/sub_category.module';
       load: [dbConfig]
     }),
     DatabaseModule,
+
+    ThrottleConfigModule,   // for route security
 
     RolesModule,
 

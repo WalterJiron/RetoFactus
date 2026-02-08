@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.enum';
 
+@Auth(Role.Admin)
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) { }

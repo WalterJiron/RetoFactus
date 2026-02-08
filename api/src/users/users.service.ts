@@ -3,7 +3,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DataSource } from 'typeorm';
 import { ResponseValidation } from '../utils/ResponseValidations';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.enum';
 
+@Auth(Role.Admin)
 @Injectable()
 export class UsersService {
   constructor(private readonly db: DataSource) { }
@@ -67,8 +70,7 @@ export class UsersService {
         FROM users AS U
         LEFT JOIN roles AS R
           ON U.roleuser = R.idrole
-        WHERE U.iduser = $1
-        ORDER BY U.iduser DESC;
+        WHERE U.iduser = $1;
       `, [id]
     );
 

@@ -1,26 +1,57 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { SignInDto } from './dto/signIn.dto';
+import { DataSource } from 'typeorm';
+import { ResponseValidation } from '../utils/ResponseValidations';
+import { JwtService } from '@nestjs/jwt';
+// import { jwtConstants } from './constants/constants';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+
+  constructor(
+    private readonly db: DataSource,
+    private readonly jwtService: JwtService,
+  ) { }
+
+  async signIn({ email, password }: SignInDto) {
+    const searchUser = await this.db.query(
+      `
+        SELECT verify_user($1, $2) AS message;
+      `, [email, password]
+    );
+
+    if (!searchUser.length) throw new NotFoundException('Error al buscar ususario.');
+
+    const response = ResponseValidation.forMessage(searchUser, "Ok");
+
+    if (response.status !== 200) throw new UnauthorizedException(response.message);
+
+    return this.createTocken(email);
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  private async createTocken(email: string) {
+    const user = await this.db.query(
+      `
+        SELECT
+          U.iduser as id,
+          R.namer as role_name
+        FROM users AS U
+        LEFT JOIN roles AS R
+          ON U.roleuser = R.idrole
+        WHERE U.email = $1;
+      `, [email]
+    );
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    if (!user[0].role_name.length) throw new BadRequestException('Error al buscar usuario.');
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    const payload = { email: email, role: user[0]?.role_name, };
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return {
+      accessToken: accessToken,
+    };
   }
 }
+
+

@@ -17,6 +17,7 @@ const products_module_1 = require("./products/products.module");
 const categorys_module_1 = require("./categorys/categorys.module");
 const auth_module_1 = require("./auth/auth.module");
 const sub_category_module_1 = require("./sub_category/sub_category.module");
+const throttle_config_module_1 = require("./configs/throttle-config.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -28,6 +29,7 @@ exports.AppModule = AppModule = __decorate([
                 load: [database_config_1.default]
             }),
             database_module_1.DatabaseModule,
+            throttle_config_module_1.ThrottleConfigModule,
             roles_module_1.RolesModule,
             users_module_1.UsersModule,
             products_module_1.ProductsModule,

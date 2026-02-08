@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
 const update_user_dto_1 = require("./dto/update-user.dto");
+const auth_decorator_1 = require("../auth/decorators/auth.decorator");
+const role_enum_1 = require("../auth/enums/role.enum");
 let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
@@ -84,6 +86,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "restore", null);
 exports.UsersController = UsersController = __decorate([
+    (0, auth_decorator_1.Auth)(role_enum_1.Role.Admin),
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService])
 ], UsersController);

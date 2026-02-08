@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/
 import { SubCategoryService } from './sub_category.service';
 import { CreateSubCategoryDto } from './dto/create-sub_category.dto';
 import { UpdateSubCategoryDto } from './dto/update-sub_category.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.enum';
 
+@Auth(Role.Admin)
 @Controller('sub-category')
 export class SubCategoryController {
   constructor(private readonly subCategoryService: SubCategoryService) { }

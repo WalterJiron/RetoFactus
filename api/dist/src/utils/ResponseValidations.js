@@ -7,7 +7,7 @@ class ResponseValidation {
         if (!resultData.length)
             throw new common_1.InternalServerErrorException('Error interno al crear el rol');
         const message = resultData[0].message;
-        if (!message.includes(messageValidate)) {
+        if (!message.toLowerCase().includes(messageValidate.toLowerCase())) {
             throw new common_1.BadRequestException({ message: message, status: 400 });
         }
         return {

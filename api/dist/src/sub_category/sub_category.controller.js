@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const sub_category_service_1 = require("./sub_category.service");
 const create_sub_category_dto_1 = require("./dto/create-sub_category.dto");
 const update_sub_category_dto_1 = require("./dto/update-sub_category.dto");
+const auth_decorator_1 = require("../auth/decorators/auth.decorator");
+const role_enum_1 = require("../auth/enums/role.enum");
 let SubCategoryController = class SubCategoryController {
     constructor(subCategoryService) {
         this.subCategoryService = subCategoryService;
@@ -84,6 +86,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], SubCategoryController.prototype, "restore", null);
 exports.SubCategoryController = SubCategoryController = __decorate([
+    (0, auth_decorator_1.Auth)(role_enum_1.Role.Admin),
     (0, common_1.Controller)('sub-category'),
     __metadata("design:paramtypes", [sub_category_service_1.SubCategoryService])
 ], SubCategoryController);

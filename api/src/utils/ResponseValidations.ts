@@ -26,7 +26,7 @@ export class ResponseValidation {
         // Obtenemos la respuesta de la base de datos.
         const message: string = resultData[0].message
 
-        if (!message.includes(messageValidate)) {
+        if (!message.toLowerCase().includes(messageValidate.toLowerCase())) {
             throw new BadRequestException({ message: message, status: 400 });
         }
 

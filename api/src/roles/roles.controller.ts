@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.enum';
 
+@Auth(Role.Admin)
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) { }
