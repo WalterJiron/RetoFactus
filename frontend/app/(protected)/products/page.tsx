@@ -13,6 +13,7 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import { Plus, Package } from "lucide-react";
+
 import { DataTable } from "@/components/common/DataTable";
 import { FilterBar } from "@/components/common/FilterBar";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -812,7 +813,7 @@ const initialProducts: Product[] = [
 export default function ProductosPage() {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(
-    null
+    null,
   );
   const [selectedCategory, setSelectedCategory] = React.useState("all");
   const [selectedStatus, setSelectedStatus] = React.useState("all");
@@ -832,6 +833,7 @@ export default function ProductosPage() {
         selectedStatus === "all" ||
         (selectedStatus === "active" && product.active) ||
         (selectedStatus === "inactive" && !product.active);
+
       return matchesCategory && matchesStatus;
     });
   }, [tableData.filteredData, selectedCategory, selectedStatus]);
@@ -879,7 +881,7 @@ export default function ProductosPage() {
       label: "Categoría",
       render: (value: string, product: Product) => (
         <div className="flex flex-col gap-1">
-          <Chip size="sm" variant="flat" color="primary">
+          <Chip color="primary" size="sm" variant="flat">
             {value}
           </Chip>
           <span className="text-xs text-gray-500">
@@ -930,12 +932,12 @@ export default function ProductosPage() {
       className: "text-right",
       render: (_: any, product: Product) => (
         <ActionButtons
+          onDelete={() => console.log("Eliminar", product.idproduct)}
+          onEdit={() => console.log("Editar", product.idproduct)}
           onView={() => {
             setSelectedProduct(product);
             onOpen();
           }}
-          onEdit={() => console.log("Editar", product.idproduct)}
-          onDelete={() => console.log("Eliminar", product.idproduct)}
         />
       ),
     },
@@ -992,39 +994,39 @@ export default function ProductosPage() {
 
       {/* Filtros y búsqueda */}
       <FilterBar
-        searchTerm={tableData.searchTerm}
-        onSearchChange={tableData.setSearchTerm}
         filters={filters}
+        placeholder="Buscar productos..."
+        searchTerm={tableData.searchTerm}
         onClearFilters={() => {
           tableData.setSearchTerm("");
           setSelectedCategory("all");
           setSelectedStatus("all");
         }}
-        placeholder="Buscar productos..."
+        onSearchChange={tableData.setSearchTerm}
       />
 
       {/* Tabla de productos */}
       <DataTable
+        columns={columns}
         data={filteredByCategoryAndStatus.slice(
           (tableData.page - 1) * tableData.rowsPerPage,
-          tableData.page * tableData.rowsPerPage
+          tableData.page * tableData.rowsPerPage,
         )}
-        columns={columns}
-        sortConfig={tableData.sortConfig}
-        onSort={tableData.handleSort}
+        emptyMessage="No hay productos que coincidan con los filtros"
         page={tableData.page}
+        rowsPerPage={tableData.rowsPerPage}
+        sortConfig={tableData.sortConfig}
+        title="Lista de Productos"
         totalPages={Math.ceil(
-          filteredByCategoryAndStatus.length / tableData.rowsPerPage
+          filteredByCategoryAndStatus.length / tableData.rowsPerPage,
         )}
         onPageChange={tableData.setPage}
-        rowsPerPage={tableData.rowsPerPage}
         onRowsPerPageChange={tableData.setRowsPerPage}
-        title="Lista de Productos"
-        emptyMessage="No hay productos que coincidan con los filtros"
+        onSort={tableData.handleSort}
       />
 
       {/* Modal para nuevo producto */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="4xl">
+      <Modal isOpen={isOpen} size="4xl" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
@@ -1043,41 +1045,49 @@ export default function ProductosPage() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Código</label>
+                        <span className="text-sm font-medium block">
+                          Código
+                        </span>
                         <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
                           {selectedProduct.code_reference}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Nombre</label>
+                        <span className="text-sm font-medium block">
+                          Nombre
+                        </span>
                         <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
                           {selectedProduct.nameproduct}
                         </div>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Descripción</label>
+                      <span className="text-sm font-medium block">
+                        Descripción
+                      </span>
                       <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
                         {selectedProduct.productdescription}
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Categoría</label>
+                        <span className="text-sm font-medium block">
+                          Categoría
+                        </span>
                         <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
                           {selectedProduct.namecategory}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">
+                        <span className="text-sm font-medium block">
                           Subcategoría
-                        </label>
+                        </span>
                         <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
                           {selectedProduct.namesubcategory}
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Stock</label>
+                        <span className="text-sm font-medium block">Stock</span>
                         <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
                           {selectedProduct.stock} unidades
                         </div>

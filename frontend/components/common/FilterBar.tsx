@@ -44,24 +44,24 @@ export function FilterBar({
       <CardBody className="p-6">
         <article className="flex flex-col lg:flex-row gap-4">
           <Input
+            className="lg:max-w-xs"
             placeholder={placeholder}
             startContent={<Search className="h-4 w-4 text-gray-400" />}
             value={searchTerm}
             onValueChange={onSearchChange}
-            className="lg:max-w-xs"
           />
 
           <section className="flex flex-1 gap-4">
             {filters.map((filter) => (
               <Autocomplete
                 key={filter.key}
+                className="lg:max-w-xs"
                 placeholder={filter.label}
+                selectedKey={filter.value}
                 startContent={
                   filter.icon || <Filter className="h-4 w-4 text-gray-400" />
                 }
-                selectedKey={filter.value}
-                onSelectionChange={(key) => filter.onChange(key)}
-                className="lg:max-w-xs"
+                onSelectionChange={(key) => filter.onChange(key as string)}
               >
                 {filter.options.map((option) => (
                   <AutocompleteItem key={option.value}>
@@ -72,8 +72,8 @@ export function FilterBar({
             ))}
 
             <Button
-              variant="light"
               startContent={<RefreshCw className="h-4 w-4" />}
+              variant="light"
               onClick={onClearFilters}
             >
               Limpiar filtros

@@ -12,7 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d management_System"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d retoFactus"]
       interval: 10s
       timeout: 15s
       retries: 5
@@ -38,6 +38,12 @@ services:
       - ./api/yarn.lock:/app/api/yarn.lock # Monta yarn.lock
     restart: unless-stopped
     command: yarn start:dev # Usar comando de desarrollo
+
+  web:
+    build: ./frontend
+    container_name: Web_RetoFactus
+    ports:
+      - "3000:3000"
 
 volumes:
   postgres_data:

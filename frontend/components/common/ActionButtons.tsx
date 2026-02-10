@@ -6,16 +6,16 @@ import { Button, Tooltip } from "@heroui/react";
 import { Eye, Edit, Trash2, MoreVertical } from "lucide-react";
 
 interface ActionButtonsProps {
-  onView?: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
-  onMore?: () => void;
   viewTooltip?: string;
   editTooltip?: string;
   deleteTooltip?: string;
   moreTooltip?: string;
   size?: "sm" | "md" | "lg";
   variant?: "light" | "flat" | "solid" | "ghost";
+  onView?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onMore?: () => void;
 }
 
 export function ActionButtons({
@@ -50,9 +50,9 @@ export function ActionButtons({
         <Tooltip content={deleteTooltip}>
           <Button
             isIconOnly
+            color="danger"
             size={size}
             variant={variant}
-            color="danger"
             onPress={onDelete}
           >
             <Trash2 className="h-4 w-4" />

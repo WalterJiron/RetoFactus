@@ -1,4 +1,3 @@
-// app/components/common/StatusBadge.tsx
 "use client";
 
 import React from "react";
@@ -27,7 +26,7 @@ export function StatusBadge({
       : status === "true" || status === "active";
 
   return (
-    <Chip size={size} variant="flat" color={isActive ? trueColor : falseColor}>
+    <Chip color={isActive ? trueColor : falseColor} size={size} variant="flat">
       {isActive ? trueLabel : falseLabel}
     </Chip>
   );

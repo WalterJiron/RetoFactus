@@ -1,6 +1,5 @@
 import { Metadata, Viewport } from "next";
-import clsx from "clsx";
-import { Providers } from "../providers";
+
 import { siteConfig } from "@/config/site";
 import Sidebar from "@/components/Sidebar";
 
@@ -28,15 +27,15 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Providers themeProps={{ attribute: "class", defaultTheme: "white" }}>
-      <div className="flex min-h-screen">
+    <main>
+      <section className="flex min-h-screen">
         <Sidebar />
 
         {/* Contenido principal */}
-        <main className="flex-1 pl-64">
+        <div className="flex-1 pl-64">
           <div className="container mx-auto px-6 py-8">{children}</div>
-        </main>
-      </div>
-    </Providers>
+        </div>
+      </section>
+    </main>
   );
 }

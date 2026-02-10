@@ -1,4 +1,3 @@
-// app/components/common/DataTable/index.tsx
 "use client";
 
 import React from "react";
@@ -13,15 +12,14 @@ import {
   CardBody,
   CardHeader,
   Pagination,
-  Select,
 } from "@heroui/react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
 interface Column<T> {
-  key: keyof T;
+  key: keyof T | string;
   label: string;
   sortable?: boolean;
-  render?: (value: T[keyof T], item: T) => React.ReactNode;
+  render?: (value: any, item: T) => React.ReactNode;
   className?: string;
 }
 
@@ -29,15 +27,15 @@ interface DataTableProps<T> {
   data: T[];
   columns: Column<T>[];
   sortConfig?: {
-    key: keyof T | null;
+    key: keyof T | string | null;
     direction: "asc" | "desc";
   };
-  onSort?: (key: keyof T) => void;
+  onSort?: (key: keyof T | string) => void;
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  rowsPerPage: number;
-  onRowsPerPageChange: (rows: number) => void;
+  rowsPerPage?: number;
+  onRowsPerPageChange?: (rows: number) => void;
   title?: string;
   emptyMessage?: string;
   showRowCount?: boolean;
@@ -52,8 +50,8 @@ export function DataTable<T extends Record<string, any>>({
   page,
   totalPages,
   onPageChange,
-  rowsPerPage,
-  onRowsPerPageChange,
+  rowsPerPage: _rowsPerPage,
+  onRowsPerPageChange: _onRowsPerPageChange,
   title,
   emptyMessage = "No hay datos disponibles",
   showRowCount = true,
@@ -115,8 +113,8 @@ export function DataTable<T extends Record<string, any>>({
                     {columns.map((column) => (
                       <TableCell key={String(column.key)}>
                         {column.render
-                          ? column.render(item[column.key], item)
-                          : item[column.key]}
+                          ? column.render(item[column.key as keyof T], item)
+                          : item[column.key as keyof T]}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -124,8 +122,8 @@ export function DataTable<T extends Record<string, any>>({
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length}
                     className="text-center py-12"
+                    colSpan={columns.length}
                   >
                     <div className="text-gray-500 dark:text-gray-400">
                       {emptyMessage}
@@ -146,16 +144,13 @@ export function DataTable<T extends Record<string, any>>({
               </span>
             )}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Filas por página:</span>
-              </div>
               <Pagination
-                page={page}
-                total={totalPages}
-                onChange={onPageChange}
-                size="sm"
                 showControls
                 showShadow
+                page={page}
+                size="sm"
+                total={totalPages}
+                onChange={onPageChange}
               />
             </div>
           </div>

@@ -36,10 +36,10 @@ export default function NotFound() {
           </p>
 
           <Button
+            className="shadow-lg transition-transform hover:scale-105"
             color="primary"
             size="lg"
             startContent={<ArrowLeft size={18} />}
-            className="shadow-lg transition-transform hover:scale-105"
             onPress={() => router.back()}
           >
             Volver a la página anterior

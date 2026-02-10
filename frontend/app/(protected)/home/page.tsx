@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardBody } from "@heroui/react";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+
 import { siteConfig } from "@/config/site";
 
 export default function HomePage() {
@@ -30,8 +31,8 @@ export default function HomePage() {
       <article aria-labelledby="quick-access-title">
         <section className="flex items-center justify-between mb-6">
           <h2
-            id="quick-access-title"
             className="text-2xl font-bold text-gray-900 dark:text-white"
+            id="quick-access-title"
           >
             Accesos Rápidos
           </h2>
@@ -40,12 +41,13 @@ export default function HomePage() {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {siteConfig.quickAccess.map((access, index) => {
             const Icon = access.icon;
+
             return (
               <Link
                 key={index}
-                href={access.href}
-                className="group block"
                 aria-label={`Ir a ${access.title}`}
+                className="group block"
+                href={access.href}
               >
                 <Card className="h-full border border-gray-200 dark:border-gray-800 hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-300 hover:shadow-lg">
                   <CardBody className="p-6">

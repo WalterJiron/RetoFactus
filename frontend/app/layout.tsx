@@ -2,9 +2,9 @@ import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 
-import { Providers } from "./providers";
-
 import { siteConfig } from "@/config/site";
+
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: {
@@ -34,7 +34,7 @@ export default function RootLayout({
       <head />
       <body
         className={clsx(
-          "min-h-screen text-foreground bg-background font-sans antialiased"
+          "min-h-screen text-foreground bg-background font-sans antialiased",
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "black" }}>

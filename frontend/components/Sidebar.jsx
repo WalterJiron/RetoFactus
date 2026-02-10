@@ -1,6 +1,5 @@
 // app/components/Sidebar.jsx
 "use client";
-import { Badge } from "@heroui/react";
 import { LogOut } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { siteConfig } from "@/config/site";

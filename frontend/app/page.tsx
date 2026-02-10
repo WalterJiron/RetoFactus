@@ -33,6 +33,7 @@ export default function LoginPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return "Por favor ingresa un email válido";
     }
+
     return "";
   };
 
@@ -45,6 +46,7 @@ export default function LoginPage() {
     if (!/[0-9]/.test(password)) return "Al menos un número";
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
       return "Al menos un carácter especial";
+
     return "";
   };
 
@@ -75,6 +77,7 @@ export default function LoginPage() {
     if (emailError || passwordError) {
       setErrors({ email: emailError, password: passwordError });
       setIsSubmitting(false);
+
       return;
     }
 
@@ -144,54 +147,53 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardBody className="px-8 pb-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Campo Email */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Correo Electrónico
-              </label>
+              </span>
               <Input
                 isRequired
+                aria-label="Correo electrónico"
+                autoComplete="email"
+                className="w-full"
+                errorMessage={touched.email && errors.email}
+                isInvalid={touched.email && !!errors.email}
                 placeholder="ejemplo@empresa.com"
+                size="lg"
                 startContent={
                   <EnvelopeIcon className="h-5 w-5 text-gray-400" />
                 }
-                className="w-full"
-                variant="bordered"
-                size="lg"
                 type="email"
                 value={email}
+                variant="bordered"
+                onBlur={() => handleBlur("email")}
                 onValueChange={(value) => {
                   setEmail(value);
                   setErrors((prev) => ({ ...prev, email: "" }));
                 }}
-                onBlur={() => handleBlur("email")}
-                isInvalid={touched.email && !!errors.email}
-                errorMessage={touched.email && errors.email}
-                autoComplete="email"
-                aria-label="Correo electrónico"
               />
             </div>
 
             {/* Campo Contraseña */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Contraseña
-              </label>
+              </span>
               <Input
                 isRequired
-                placeholder="Ingresa tu contraseña"
-                startContent={
-                  <LockClosedIcon className="h-5 w-5 text-gray-400" />
-                }
+                aria-label="Contraseña"
+                autoComplete="current-password"
+                className="w-full"
                 endContent={
                   <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={toggleVisibility}
                     aria-label={
                       isVisible ? "Ocultar contraseña" : "Mostrar contraseña"
                     }
+                    className="focus:outline-none"
+                    type="button"
+                    onClick={toggleVisibility}
                   >
                     {isVisible ? (
                       <EyeSlashIcon className="h-5 w-5 text-gray-400" />
@@ -200,20 +202,21 @@ export default function LoginPage() {
                     )}
                   </button>
                 }
-                className="w-full"
-                variant="bordered"
+                errorMessage={touched.password && errors.password}
+                isInvalid={touched.password && !!errors.password}
+                placeholder="Ingresa tu contraseña"
                 size="lg"
+                startContent={
+                  <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                }
                 type={isVisible ? "text" : "password"}
                 value={password}
+                variant="bordered"
+                onBlur={() => handleBlur("password")}
                 onValueChange={(value) => {
                   setPassword(value);
                   setErrors((prev) => ({ ...prev, password: "" }));
                 }}
-                onBlur={() => handleBlur("password")}
-                isInvalid={touched.password && !!errors.password}
-                errorMessage={touched.password && errors.password}
-                autoComplete="current-password"
-                aria-label="Contraseña"
               />
 
               {/* Validación visual de requisitos */}
@@ -222,13 +225,13 @@ export default function LoginPage() {
 
             {/* Botón de Login */}
             <Button
-              type="submit"
-              color="primary"
-              size="lg"
               className="w-full font-semibold mt-6"
-              radius="md"
+              color="primary"
               isDisabled={!!errors.email || !!errors.password || isSubmitting}
               isLoading={isSubmitting}
+              radius="md"
+              size="lg"
+              type="submit"
             >
               {isSubmitting ? "Verificando..." : "Iniciar Sesión"}
             </Button>

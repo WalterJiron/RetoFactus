@@ -1,4 +1,12 @@
-import { FileText, Home, Package, Settings, ShoppingBag, Users } from "lucide-react";
+import {
+  FileText,
+  Home,
+  Package,
+  Settings,
+  ShoppingBag,
+  UserLock,
+  Users,
+} from "lucide-react";
 
 export type SiteConfig = typeof siteConfig;
 
@@ -8,11 +16,12 @@ export const siteConfig = {
 
   navMenuItems: [
     { label: "Inicio", icon: Home, path: "/home" },
-    { label: "Clientes", icon: Users, path: "/clientes" },
-    { label: "Ventas", icon: ShoppingBag, path: "/ventas" },
+    { label: "Usuarios", icon: UserLock, path: "/users" },
+    { label: "Roles", icon: Settings, path: "/roles" },
     { label: "Productos", icon: Package, path: "/products" },
+    { label: "Clientes", icon: Users, path: "/customers" },
+    { label: "Ventas", icon: ShoppingBag, path: "/ventas" },
     { label: "Facturación", icon: FileText, path: "/facturacion" },
-    { label: "Configuración", icon: Settings, path: "/configuracion" },
   ],
 
   quickAccess: [

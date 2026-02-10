@@ -2182,3 +2182,372 @@ BEGIN
     END;
 END;
 $$;
+
+
+
+
+
+---------------------------------------------------- PRODUCTS DETALS ----------------------------------------------------
+
+/*
+  Función: create_detailproduct
+  Descripción: Inserta un nuevo detalle de producto aplicando validaciones de negocio.
+               Solo un detalle activo por producto. Al crear uno nuevo, se desactivan los anteriores.
+  Parámetros:
+    - p_idproduct: ID del producto (debe existir y estar activo).
+    - p_minstock: Stock mínimo (>= 0).
+    - p_purchaseprice: Precio de compra (>= 0.001).
+    - p_saleprice: Precio de venta (>= p_purchaseprice).
+  Retorna:
+    - VARCHAR(100): mensaje de éxito o error.
+*/
+CREATE OR REPLACE FUNCTION create_detailproduct(
+    p_idproduct INTEGER,
+    p_minstock INTEGER,
+    p_purchaseprice DECIMAL(10,3),
+    p_saleprice DECIMAL(10,3)
+)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_iddetailproduct BIGINT;
+    v_product_active BOOLEAN;
+    v_product_name VARCHAR(80);
+    v_existing_active_count INTEGER;
+BEGIN
+    -- Campos obligatorios no nulos
+    IF p_idproduct IS NULL OR p_minstock IS NULL OR 
+       p_purchaseprice IS NULL OR p_saleprice IS NULL THEN
+        RETURN 'Error: Todos los campos son obligatorios.';
+    END IF;
+
+    -- Validar stock minimo no negativo
+    IF p_minstock < 0 THEN
+        RETURN 'Error: El stock mínimo no puede ser negativo.';
+    END IF;
+
+    -- Precio de compra debe ser positivo
+    IF p_purchaseprice < 0 THEN
+        RETURN 'Error: El precio de compra debe ser mayor o igual a cero.';
+    END IF;
+    
+    -- Precio de venta debe ser positivo
+    IF p_saleprice < 0 THEN
+        RETURN 'Error: El precio de venta debe ser mayor o igual a cero.';
+    END IF;
+    
+    -- Precio de venta debe ser mayor o igual al precio de compra (margen minimo 0)
+    IF p_saleprice < p_purchaseprice THEN
+        RETURN 'Error: El precio de venta no puede ser menor al precio de compra.';
+    END IF;
+
+    --  Verificar existencia y estado del producto
+    SELECT Active, NameProduct INTO v_product_active, v_product_name
+    FROM Product WHERE IdProduct = p_idproduct;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: El producto especificado no existe.';
+    END IF;
+    
+    IF NOT v_product_active THEN
+        RETURN 'Error: El producto especificado está inactivo.';
+    END IF;
+
+    --  Verificar si ya existe un detalle activo para este producto
+    SELECT COUNT(*) INTO v_existing_active_count
+    FROM DetailProduct 
+    WHERE IdProduct = p_idproduct AND Active = true;
+    
+    -- (por si hay inconsistencias en la base de datos)
+    IF v_existing_active_count > 1 THEN
+        -- Esto no debería pasar, pero si pasa, jajaj
+        UPDATE DetailProduct SET
+            Active = false, DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdProduct = p_idproduct AND Active = true;
+    END IF;
+
+    -- Transacción de inserción
+    BEGIN
+        -- Desactivar cualquier detalle activo existente para este producto
+        UPDATE DetailProduct
+        SET 
+            Active = false,
+            DateUpdate = CURRENT_TIMESTAMP,
+            DateDelete = CURRENT_TIMESTAMP
+        WHERE IdProduct = p_idproduct AND Active = true;
+
+        -- Insertar nuevo detalle activo
+        INSERT INTO DetailProduct (
+            IdProduct,
+            MinStock,
+            PurchasePrice,
+            SalePrice,
+            Active
+        ) VALUES (
+            p_idproduct,
+            p_minstock,
+            p_purchaseprice,
+            p_saleprice,
+            true
+        ) RETURNING IdDetailProduct INTO v_iddetailproduct;
+
+        RETURN 'Detalle de producto creado correctamente para "' || v_product_name || 
+               '". ID: ' || v_iddetailproduct;
+    EXCEPTION
+        WHEN foreign_key_violation THEN
+            RETURN 'Error: El producto especificado no existe.';
+        WHEN OTHERS THEN
+            RETURN 'Error al crear detalle de producto: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Función: update_detailproduct
+  Descripción: Actualiza un detalle de producto existente con validaciones.
+  Parámetros:
+    - p_iddetailproduct: ID del detalle a actualizar (debe existir y estar activo).
+    - p_minstock: Nuevo stock mínimo (opcional, >= 0).
+    - p_purchaseprice: Nuevo precio de compra (opcional, >= 0.001).
+    - p_saleprice: Nuevo precio de venta (opcional, >= p_purchaseprice).
+  Retorna:
+    - VARCHAR(100): mensaje de éxito o error.
+*/
+CREATE OR REPLACE FUNCTION update_detailproduct(
+    p_iddetailproduct BIGINT,
+    p_minstock INTEGER DEFAULT NULL,
+    p_purchaseprice DECIMAL(10,3) DEFAULT NULL,
+    p_saleprice DECIMAL(10,3) DEFAULT NULL
+)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_idproduct INTEGER;
+    v_current_purchaseprice DECIMAL(10,3);
+    v_current_saleprice DECIMAL(10,3);
+    v_active BOOLEAN;
+    v_product_active BOOLEAN;
+BEGIN
+    -- Verificar existencia y estado del detalle
+    SELECT IdProduct, PurchasePrice, SalePrice, Active 
+    INTO v_idproduct, v_current_purchaseprice, v_current_saleprice, v_active
+    FROM DetailProduct WHERE IdDetailProduct = p_iddetailproduct;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: Detalle de producto no encontrado.';
+    END IF;
+    
+    IF NOT v_active THEN
+        RETURN 'Error: No se puede actualizar un detalle eliminado.';
+    END IF;
+
+    -- Verificar que el producto asociado esté activo
+    SELECT Active INTO v_product_active
+    FROM Product WHERE IdProduct = v_idproduct;
+    
+    IF NOT v_product_active THEN
+        RETURN 'Error: El producto asociado está inactivo.';
+    END IF;
+
+    -- Validar stock mínimo si se proporciona
+    IF p_minstock IS NOT NULL AND p_minstock < 0 THEN
+        RETURN 'Error: El stock mínimo no puede ser negativo.';
+    END IF;
+
+    -- Validar precios si se proporcionan
+    DECLARE
+        v_new_purchaseprice DECIMAL(10,3);
+        v_new_saleprice DECIMAL(10,3);
+    BEGIN
+        v_new_purchaseprice := COALESCE(p_purchaseprice, v_current_purchaseprice);
+        v_new_saleprice := COALESCE(p_saleprice, v_current_saleprice);
+        
+        -- Validaciones de precios
+        IF v_new_purchaseprice <= 0 THEN
+            RETURN 'Error: El precio de compra debe ser mayor a cero.';
+        END IF;
+        
+        IF v_new_saleprice < 0 THEN
+            RETURN 'Error: El precio de venta debe ser mayor o igual a cero.';
+        END IF;
+        
+        IF v_new_saleprice < v_new_purchaseprice THEN
+            RETURN 'Error: El precio de venta no puede ser menor al precio de compra.';
+        END IF;
+    END;
+
+    -- Transacción de actualización
+    BEGIN
+        UPDATE DetailProduct
+        SET
+            MinStock = COALESCE(p_minstock, MinStock),
+            PurchasePrice = COALESCE(p_purchaseprice, PurchasePrice),
+            SalePrice = COALESCE(p_saleprice, SalePrice),
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdDetailProduct = p_iddetailproduct;
+
+        -- Verificar si se actualizó algún registro
+        IF NOT FOUND THEN
+            RETURN 'Error: No se pudo actualizar el detalle de producto.';
+        END IF;
+
+        RETURN 'Detalle de producto actualizado correctamente.';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN 'Error al actualizar detalle de producto: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Función: delete_detailproduct
+  Descripción: Eliminación lógica de un detalle de producto con validaciones.
+  Parámetros:
+    - p_iddetailproduct: ID del detalle a eliminar (debe existir y estar activo).
+  Retorna:
+    - VARCHAR(100): mensaje de éxito o error.
+*/
+CREATE OR REPLACE FUNCTION delete_detailproduct(p_iddetailproduct BIGINT)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_idproduct INTEGER;
+    v_product_name VARCHAR(80);
+    v_active_detail_count INTEGER;
+BEGIN
+    -- Verificar existencia
+    IF NOT EXISTS (SELECT 1 FROM DetailProduct WHERE IdDetailProduct = p_iddetailproduct) THEN
+        RETURN 'Error: Detalle de producto no encontrado.';
+    END IF;
+
+    -- Verificar estado actual
+    IF EXISTS (SELECT 1 FROM DetailProduct WHERE IdDetailProduct = p_iddetailproduct AND Active = false) THEN
+        RETURN 'Error: El detalle ya está eliminado.';
+    END IF;
+
+    -- Obtener información del producto asociado
+    SELECT dp.IdProduct, p.NameProduct 
+    INTO v_idproduct, v_product_name
+    FROM DetailProduct dp
+    INNER JOIN Product p ON dp.IdProduct = p.IdProduct
+    WHERE dp.IdDetailProduct = p_iddetailproduct;
+
+    -- Validación: No permitir eliminar si es el único detalle activo del producto
+    SELECT COUNT(*) INTO v_active_detail_count
+    FROM DetailProduct
+    WHERE IdProduct = v_idproduct AND Active = true;
+    
+    IF v_active_detail_count <= 1 THEN
+        RETURN 'Error: No se puede eliminar el único detalle activo del producto "' || 
+               v_product_name || '". Cree un nuevo detalle primero.';
+    END IF;
+    
+    -- Transacción de eliminación lógica
+    BEGIN
+        UPDATE DetailProduct
+        SET 
+            Active = false,
+            DateDelete = CURRENT_TIMESTAMP,
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdDetailProduct = p_iddetailproduct;
+
+        RETURN 'Detalle de producto eliminado correctamente del producto "' || v_product_name || '".';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN 'Error al eliminar detalle de producto: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Función: restore_detailproduct
+  Descripción: Restaura un detalle de producto eliminado lógicamente.
+  Parámetros:
+    - p_iddetailproduct: ID del detalle a restaurar (debe existir y estar inactivo).
+  Retorna:
+    - VARCHAR(100): mensaje de éxito o error.
+*/
+CREATE OR REPLACE FUNCTION restore_detailproduct(p_iddetailproduct BIGINT)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_idproduct INTEGER;
+    v_product_active BOOLEAN;
+    v_active_detail_count INTEGER;
+    v_product_name VARCHAR(80);
+BEGIN
+    -- Verificar existencia
+    IF NOT EXISTS (SELECT 1 FROM DetailProduct WHERE IdDetailProduct = p_iddetailproduct) THEN
+        RETURN 'Error: Detalle de producto no encontrado.';
+    END IF;
+
+    -- Verificar que esté eliminado
+    IF EXISTS (SELECT 1 FROM DetailProduct WHERE IdDetailProduct = p_iddetailproduct AND Active = true) THEN
+        RETURN 'Error: El detalle ya está activo.';
+    END IF;
+
+    -- Obtener información del producto asociado
+    SELECT dp.IdProduct, p.NameProduct, p.Active
+    INTO v_idproduct, v_product_name, v_product_active
+    FROM DetailProduct dp
+    INNER JOIN Product p ON dp.IdProduct = p.IdProduct
+    WHERE dp.IdDetailProduct = p_iddetailproduct;
+
+    -- Verificar que el producto esté activo
+    IF NOT v_product_active THEN
+        RETURN 'Error: El producto "' || v_product_name || '" está inactivo. Active primero el producto.';
+    END IF;
+
+    -- Para evitar tener múltiples detalles activos con diferentes precios
+    DECLARE
+        v_current_purchaseprice DECIMAL(10,3);
+        v_current_saleprice DECIMAL(10,3);
+        v_conflicting_detail BIGINT;
+    BEGIN
+        SELECT PurchasePrice, SalePrice 
+        INTO v_current_purchaseprice, v_current_saleprice
+        FROM DetailProduct 
+        WHERE IdDetailProduct = p_iddetailproduct;
+
+        -- Buscar si hay otro detalle activo con diferentes precios
+        SELECT IdDetailProduct INTO v_conflicting_detail
+        FROM DetailProduct
+        WHERE IdProduct = v_idproduct 
+          AND Active = true
+          AND (PurchasePrice != v_current_purchaseprice OR SalePrice != v_current_saleprice)
+        LIMIT 1;
+
+        IF FOUND THEN
+            -- Desactivar el detalle activo existente antes de restaurar este
+            UPDATE DetailProduct
+            SET 
+                Active = false,
+                DateUpdate = CURRENT_TIMESTAMP,
+                DateDelete = CURRENT_TIMESTAMP
+            WHERE IdDetailProduct = v_conflicting_detail;
+        END IF;
+    END;
+
+    -- Transacción de restauración
+    BEGIN
+        UPDATE DetailProduct
+        SET 
+            Active = true,
+            DateDelete = NULL,
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdDetailProduct = p_iddetailproduct;
+
+        RETURN 'Detalle de producto restaurado correctamente para el producto "' || v_product_name || '".';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN 'Error al restaurar detalle de producto: ' || SQLERRM;
+    END;
+END;
+$$;
