@@ -21,30 +21,31 @@ const create_product_full_dto_1 = require("./dto/create-product-full.dto");
 const update_product_full_dto_1 = require("./dto/update-product-full.dto");
 const create_prodestDetails_dto_1 = require("./dto/create-prodestDetails.dto");
 const swagger_1 = require("@nestjs/swagger");
+const get_establishment_decorator_1 = require("../auth/decorators/get-establishment.decorator");
 let ProductsController = class ProductsController {
     constructor(productsService) {
         this.productsService = productsService;
     }
-    async create(createProductDto) {
-        return await this.productsService.create(createProductDto);
+    async create(estId, createProductDto) {
+        return await this.productsService.create(estId, createProductDto);
     }
     async createDetail(idProduct, detail) {
         return await this.productsService.createDetail(idProduct, detail);
     }
-    async findAll() {
-        return await this.productsService.findAll();
+    async findAll(estId) {
+        return await this.productsService.findAll(estId);
     }
-    async findOne(id) {
-        return await this.productsService.findOne(+id);
+    async findOne(estId, id) {
+        return await this.productsService.findOne(estId, +id);
     }
     async update(id, updateProductDto) {
         return await this.productsService.update(+id, updateProductDto);
     }
-    async remove(id) {
-        return await this.productsService.remove(+id);
+    async remove(estId, id) {
+        return await this.productsService.remove(estId, +id);
     }
-    async restore(id) {
-        return await this.productsService.restore(id);
+    async restore(estId, id) {
+        return await this.productsService.restore(estId, id);
     }
 };
 exports.ProductsController = ProductsController;
@@ -74,9 +75,10 @@ __decorate([
     }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Producto creado exitosamente' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Error en los datos proporcionados' }),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, get_establishment_decorator_1.CurrentEstablishment)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_product_full_dto_1.CreateProductFullDto]),
+    __metadata("design:paramtypes", [Number, create_product_full_dto_1.CreateProductFullDto]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "create", null);
 __decorate([
@@ -109,16 +111,18 @@ __decorate([
 __decorate([
     (0, auth_decorator_1.Auth)(role_enum_1.Role.Admin, role_enum_1.Role.Vendedor),
     (0, common_1.Get)(),
+    __param(0, (0, get_establishment_decorator_1.CurrentEstablishment)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "findAll", null);
 __decorate([
     (0, auth_decorator_1.Auth)(role_enum_1.Role.Admin, role_enum_1.Role.Vendedor),
     (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, get_establishment_decorator_1.CurrentEstablishment)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "findOne", null);
 __decorate([
@@ -132,16 +136,18 @@ __decorate([
 ], ProductsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, get_establishment_decorator_1.CurrentEstablishment)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "remove", null);
 __decorate([
     (0, common_1.Put)('activate/:id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, get_establishment_decorator_1.CurrentEstablishment)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "restore", null);
 exports.ProductsController = ProductsController = __decorate([

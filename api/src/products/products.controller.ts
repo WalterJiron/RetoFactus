@@ -6,6 +6,7 @@ import { CreateProductFullDto } from './dto/create-product-full.dto';
 import { UpdateProductFullDto } from './dto/update-product-full.dto';
 import { CreateProductDetailsDto } from './dto/create-prodestDetails.dto';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger'; // Añadir estas importaciones
+import { CurrentEstablishment } from '../auth/decorators/get-establishment.decorator';
 
 @Auth(Role.Admin)
 @Controller('products')
@@ -37,8 +38,8 @@ export class ProductsController {
   })
   @ApiResponse({ status: 201, description: 'Producto creado exitosamente' })
   @ApiResponse({ status: 400, description: 'Error en los datos proporcionados' })
-  async create(@Body() createProductDto: CreateProductFullDto) {
-    return await this.productsService.create(createProductDto);
+  async create(@CurrentEstablishment() estId: number, @Body() createProductDto: CreateProductFullDto) {
+    return await this.productsService.create(estId, createProductDto);
   }
 
   @Auth(Role.Admin, Role.Vendedor)
@@ -67,14 +68,14 @@ export class ProductsController {
 
   @Auth(Role.Admin, Role.Vendedor)
   @Get()
-  async findAll() {
-    return await this.productsService.findAll();
+  async findAll(@CurrentEstablishment() estId: number) {
+    return await this.productsService.findAll(estId);
   }
 
   @Auth(Role.Admin, Role.Vendedor)
   @Get(':id')
-  async findOne(@Param('id') id: number) {
-    return await this.productsService.findOne(+id);
+  async findOne(@CurrentEstablishment() estId: number, @Param('id') id: number) {
+    return await this.productsService.findOne(estId, +id);
   }
 
   @Auth(Role.Admin, Role.Vendedor)
@@ -84,12 +85,12 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: number) {
-    return await this.productsService.remove(+id);
+  async remove(@CurrentEstablishment() estId: number, @Param('id') id: number) {
+    return await this.productsService.remove(estId, +id);
   }
 
   @Put('activate/:id')
-  async restore(@Param('id') id: number) {
-    return await this.productsService.restore(id);
+  async restore(@CurrentEstablishment() estId: number, @Param('id') id: number) {
+    return await this.productsService.restore(estId, id);
   }
 }

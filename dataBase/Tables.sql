@@ -1,3 +1,19 @@
+CREATE TABLE Establishments (
+    IdEstablishment SERIAL PRIMARY KEY NOT NULL,
+    Name VARCHAR(100) NOT NULL,
+    Address TEXT,
+    Phone_Number VARCHAR(20),
+    Email VARCHAR(100),
+    Municipality_Id INT, 
+    
+    DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    DateUpdate TIMESTAMPTZ,
+    DateDelete TIMESTAMPTZ,
+    
+	Active BOOLEAN DEFAULT TRUE
+);
+
+
 CREATE TABLE Roles(
 	IdRole SERIAL PRIMARY KEY NOT NULL,
 	Namer VARCHAR(50) NOT NULL,
@@ -16,6 +32,7 @@ create table Users(
 	Email VARCHAR(100) NOT NULL UNIQUE,
 	PasswordUserHash TEXT NOT NULL,
 	RoleUser INT REFERENCES Roles(IdRole) ON DELETE RESTRICT ON UPDATE CASCADE,
+    IdEstablishment INT REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE,
 	
 	LastLogin TIMESTAMPTZ,
 	DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -78,4 +95,12 @@ CREATE TABLE DetailProduct(
     DateDelete TIMESTAMPTZ,
 
     Active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE ProductEstablishments (
+    IdEstablishment INT REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE,
+    IdProduct INT REFERENCES Product(IdProduct) ON DELETE RESTRICT ON UPDATE CASCADE NOT NULL,
+
+    AassignmentDate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    Active BOOLEAN DEFAULT TRUE 
 );

@@ -1,3 +1,19 @@
+CREATE TABLE Establishments (
+    IdEstablishment SERIAL PRIMARY KEY NOT NULL,
+    Name VARCHAR(100) NOT NULL,
+    Address TEXT,
+    Phone_Number VARCHAR(20),
+    Email VARCHAR(100),
+    Municipality_Id INT, 
+    
+    DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    DateUpdate TIMESTAMPTZ,
+    DateDelete TIMESTAMPTZ,
+    
+	Active BOOLEAN DEFAULT TRUE
+);
+
+
 CREATE TABLE Roles(
 	IdRole SERIAL PRIMARY KEY NOT NULL,
 	Namer VARCHAR(50) NOT NULL,
@@ -16,6 +32,7 @@ create table Users(
 	Email VARCHAR(100) NOT NULL UNIQUE,
 	PasswordUserHash TEXT NOT NULL,
 	RoleUser INT REFERENCES Roles(IdRole) ON DELETE RESTRICT ON UPDATE CASCADE,
+    IdEstablishment INT REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE NOT NULL,
 	
 	LastLogin TIMESTAMPTZ,
 	DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -438,62 +455,105 @@ $$ LANGUAGE plpgsql;
 
 ---------------------------------------------------- CRUD USERS ----------------------------------------------------
 /*
-  Función: validate_password_strength
-  Descripción: Valida que la contraseña cumpla con los requisitos de seguridad.
+  Función: verify_user
+  Descripción: Verifica credenciales de usuario (email y contraseña).
   Parámetros:
-    - p_password: Contraseña a validar en texto plano.
+    - p_email: Email del usuario.
+    - p_password: Contraseña en texto plano.
   Retorna:
-    - BOOLEAN: true si cumple, false si no cumple.
+    - VARCHAR(100): 'Ok' si las credenciales son válidas y el usuario está activo,
+      mensaje de error en caso contrario.
 */
 
-CREATE OR REPLACE FUNCTION validate_password_strength(p_password TEXT)
-RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION verify_user(
+    p_email VARCHAR(100),
+    p_password TEXT
+)
+RETURNS VARCHAR(100)
 LANGUAGE plpgsql
-IMMUTABLE
+AS $$
+DECLARE
+    v_user_id BIGINT;
+    v_active BOOLEAN;
+    v_stored_hash TEXT;
+    v_establishment_id INT;
+    v_login_attempts INTEGER DEFAULT 0;
+    v_last_attempt TIMESTAMPTZ;
+    v_account_locked BOOLEAN DEFAULT false;
+BEGIN
+    -- Validar parámetros
+    IF p_email IS NULL OR p_password IS NULL THEN
+        RETURN 'Error: Email y contraseña son obligatorios.';
+    END IF;
+
+    -- Buscar usuario por email incluyendo el establecimiento
+    SELECT 
+        IdUser, 
+        Active, 
+        PasswordUserHash,
+        IdEstablishment
+    INTO 
+        v_user_id, 
+        v_active, 
+        v_stored_hash,
+        v_establishment_id
+    FROM Users 
+    WHERE Email = LOWER(TRIM(p_email));
+
+    IF NOT FOUND THEN
+        -- No revelar que el usuario no existe
+        RETURN 'Error: Credenciales inválidas o usuario inactivo.';
+    END IF;
+
+    -- Verificar estado del usuario
+    IF NOT v_active THEN
+        RETURN 'Error: Usuario inactivo o eliminado.';
+    END IF;
+
+    -- Validar que el usuario esté asignado a un establecimiento
+    IF v_establishment_id IS NULL THEN
+        RETURN 'Error: Credenciales inválidas o usuario inactivo.'; 
+    END IF;
+
+    -- Verificar contraseña
+    IF v_stored_hash IS NULL OR v_stored_hash = '' THEN
+        RETURN 'Error: Credenciales inválidas o usuario inactivo.';
+    END IF;
+
+    IF v_stored_hash != crypt(p_password, v_stored_hash) THEN
+        RETURN 'Error: Credenciales inválidas o usuario inactivo.';
+    END IF;
+
+    -- Actualizar último acceso
+    UPDATE Users SET 
+        LastLogin = CURRENT_TIMESTAMP
+    WHERE IdUser = v_user_id;
+
+    RETURN 'Ok';
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN 'Error: No se pudo verificar las credenciales.';
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION obtener_usuario_por_email(p_email VARCHAR(100))
+RETURNS TABLE (
+    id BIGINT,
+    Establishment INT,
+    role_name VARCHAR(50)
+) 
+LANGUAGE plpgsql
 AS $$
 BEGIN
-    -- Verificar que la contraseña no sea nula
-    IF p_password IS NULL THEN
-        RETURN false;
-    END IF;
-
-    -- Longitud mínima de 8 caracteres
-    IF LENGTH(p_password) < 8 THEN
-        RETURN false;
-    END IF;
-
-    -- Debe contener al menos una letra mayúscula
-    IF NOT (p_password ~ '[A-Z]') THEN
-        RETURN false;
-    END IF;
-
-    -- Debe contener al menos una letra minúscula
-    IF NOT (p_password ~ '[a-z]') THEN
-        RETURN false;
-    END IF;
-
-    -- Debe contener al menos un número
-    IF NOT (p_password ~ '[0-9]') THEN
-        RETURN false;
-    END IF;
-
-    -- Debe contener al menos un carácter especial
-    -- Caracteres especiales comunes: !@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?
-    IF NOT (p_password ~ '[!@#$%^&*()_+\-=\[\]{};'':"\\|,.<>/?]') THEN
-        RETURN false;
-    END IF;
-
-    -- No debe contener espacios en blanco
-    IF p_password ~ '\s' THEN
-        RETURN false;
-    END IF;
-
-    -- Validación adicional: no permitir secuencias simples (ej: 123456, abcdef)
-    IF p_password ~ '(0123456789|1234567890|abcdefghijklmnopqrstuvwxyz|qwertyuiop|asdfghjkl|zxcvbnm)' THEN
-        RETURN false;
-    END IF;
-
-    RETURN true;
+    RETURN QUERY
+    SELECT 
+        U.iduser,
+        U.Idestablishment,
+        R.namer
+    FROM users AS U
+    LEFT JOIN roles AS R ON U.roleuser = R.idrole
+    WHERE U.email = p_email;
 END;
 $$;
 
@@ -1983,8 +2043,8 @@ BEGIN
 
     -- No eliminar productos con stock > 0 (política de negocio)
     IF v_current_stock > 0 THEN
-        RETURN 'Error: No se puede eliminar el producto "' || v_product_name || 
-               '" porque tiene ' || v_current_stock || ' unidades en stock.';
+        RETURN 'Error: No se puede eliminar el producto ' || v_product_name || 
+               ' porque tiene ' || v_current_stock || ' unidades en stock.';
     END IF;
 
     -- Transacción de eliminación lógica
@@ -2003,7 +2063,7 @@ BEGIN
             DateDelete = CURRENT_TIMESTAMP
         WHERE IdProduct = p_idproduct;
 
-        RETURN 'Producto "' || v_product_name || '" eliminado correctamente.';
+        RETURN 'Producto ' || v_product_name || ' eliminado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al eliminar producto: ' || SQLERRM;
@@ -2107,7 +2167,7 @@ BEGIN
         WHERE IdProduct = p_idproduct
         AND Active = false;
 
-        RETURN 'Producto "' || v_product_name || '" restaurado correctamente.';
+        RETURN 'Producto ' || v_product_name || ' restaurado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al restaurar producto: ' || SQLERRM;

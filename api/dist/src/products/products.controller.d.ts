@@ -5,11 +5,11 @@ import { CreateProductDetailsDto } from './dto/create-prodestDetails.dto';
 export declare class ProductsController {
     private readonly productsService;
     constructor(productsService: ProductsService);
-    create(createProductDto: CreateProductFullDto): Promise<any>;
+    create(estId: number, createProductDto: CreateProductFullDto): Promise<any>;
     createDetail(idProduct: number, detail: CreateProductDetailsDto): Promise<any>;
-    findAll(): Promise<any>;
-    findOne(id: number): Promise<any>;
+    findAll(estId: number): Promise<any>;
+    findOne(estId: number, id: number): Promise<any>;
     update(id: number, updateProductDto: UpdateProductFullDto): Promise<any>;
-    remove(id: number): Promise<any>;
-    restore(id: number): Promise<any>;
+    remove(estId: number, id: number): Promise<any>;
+    restore(estId: number, id: number): Promise<any>;
 }

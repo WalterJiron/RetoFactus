@@ -32,17 +32,13 @@ let AuthService = class AuthService {
     }
     async createTocken(email) {
         const user = await this.db.query(`
-        SELECT
-          U.iduser as id,
-          R.namer as role_name
-        FROM users AS U
-        LEFT JOIN roles AS R
-          ON U.roleuser = R.idrole
-        WHERE U.email = $1;
+        SELECT 
+          id, establishment, role_name  
+        FROM obtener_usuario_por_email($1);
       `, [email]);
         if (!user[0].role_name.length)
             throw new common_1.BadRequestException('Error al buscar usuario.');
-        const payload = { email: email, role: user[0]?.role_name, };
+        const payload = { sub: user[0]?.id, email: email, role: user[0]?.role_name, establishmentId: user[0]?.establishment };
         const accessToken = await this.jwtService.signAsync(payload);
         return {
             accessToken: accessToken,

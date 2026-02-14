@@ -30,6 +30,13 @@ services:
       - DB_USERNAME=admin
       - DB_PASSWORD=admin.123
       - DB_DATABASE=retoFactus
+      - JWT_ACCESS_SECRET="your_JWT_ACCESS_SECRET"
+      - LIMIT_REQUESTS=50
+      - TTL_REQUESTS_LOGIN=60000
+      - BLOCK_DURATION=60000
+      - LIMIT_REQUESTS_LOGIN=5
+      - TTL_REQUESTS_LOGIN=60000
+      - BLOCK_DURATION_LOGIN=600000
     ports:
       - "4000:4000"
     volumes:

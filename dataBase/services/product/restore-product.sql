@@ -93,7 +93,7 @@ BEGIN
         WHERE IdProduct = p_idproduct
         AND Active = false;
 
-        RETURN 'Producto "' || v_product_name || '" restaurado correctamente.';
+        RETURN 'Producto ' || v_product_name || ' restaurado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al restaurar producto: ' || SQLERRM;

@@ -5,11 +5,11 @@ import { CreateProductDetailsDto } from './dto/create-prodestDetails.dto';
 export declare class ProductsService {
     private readonly db;
     constructor(db: DataSource);
-    create({ codeReference, nameProduct, description, idSubCategory, stock, measurementUnit, minStock, purchasePrice, salePrice }: CreateProductFullDto): Promise<any>;
+    create(estId: number, { codeReference, nameProduct, description, idSubCategory, stock, measurementUnit, minStock, purchasePrice, salePrice }: CreateProductFullDto): Promise<any>;
     createDetail(idProduct: number, { minStock, purchasePrice, salePrice }: CreateProductDetailsDto): Promise<any>;
-    findAll(): Promise<any>;
-    findOne(id: number): Promise<any>;
+    findAll(estId: number): Promise<any>;
+    findOne(estId: number, id: number): Promise<any>;
     update(id: number, { codeReference, nameProduct, description, idSubCategory, stock, measurementUnit, idDetail, minStock, purchasePrice, salePrice }: UpdateProductFullDto): Promise<any>;
-    remove(id: number): Promise<any>;
-    restore(id: number): Promise<any>;
+    remove(estId: number, id: number): Promise<any>;
+    restore(estId: number, id: number): Promise<any>;
 }

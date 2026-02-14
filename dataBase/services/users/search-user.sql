@@ -20,6 +20,7 @@ DECLARE
     v_user_id BIGINT;
     v_active BOOLEAN;
     v_stored_hash TEXT;
+    v_establishment_id INT;
     v_login_attempts INTEGER DEFAULT 0;
     v_last_attempt TIMESTAMPTZ;
     v_account_locked BOOLEAN DEFAULT false;
@@ -29,26 +30,33 @@ BEGIN
         RETURN 'Error: Email y contraseña son obligatorios.';
     END IF;
 
-    -- Buscar usuario por email
+    -- Buscar usuario por email incluyendo el establecimiento
     SELECT 
         IdUser, 
         Active, 
-        PasswordUserHash
+        PasswordUserHash,
+        IdEstablishment
     INTO 
         v_user_id, 
         v_active, 
-        v_stored_hash
+        v_stored_hash,
+        v_establishment_id
     FROM Users 
     WHERE Email = LOWER(TRIM(p_email));
 
     IF NOT FOUND THEN
-        -- No revelar que el usuario no existe por seguridad
+        -- No revelar que el usuario no existe
         RETURN 'Error: Credenciales inválidas o usuario inactivo.';
     END IF;
 
     -- Verificar estado del usuario
     IF NOT v_active THEN
         RETURN 'Error: Usuario inactivo o eliminado.';
+    END IF;
+
+    -- Validar que el usuario esté asignado a un establecimiento
+    IF v_establishment_id IS NULL THEN
+        RETURN 'Error: Credenciales inválidas o usuario inactivo.'; 
     END IF;
 
     -- Verificar contraseña
@@ -60,6 +68,7 @@ BEGIN
         RETURN 'Error: Credenciales inválidas o usuario inactivo.';
     END IF;
 
+    -- Actualizar último acceso
     UPDATE Users SET 
         LastLogin = CURRENT_TIMESTAMP
     WHERE IdUser = v_user_id;

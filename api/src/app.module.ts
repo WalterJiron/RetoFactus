@@ -9,6 +9,7 @@ import { CategorysModule } from './categorys/categorys.module';
 import { AuthModule } from './auth/auth.module';
 import { SubCategoryModule } from './sub_category/sub_category.module';
 import { ThrottleConfigModule } from './configs/throttle-config.module';
+import { EstablishmentsModule } from './establishments/establishments.module';
 
 @Module({
   imports: [
@@ -31,6 +32,8 @@ import { ThrottleConfigModule } from './configs/throttle-config.module';
     AuthModule,
 
     SubCategoryModule,
+
+    EstablishmentsModule,
   ],
   controllers: [],
   providers: [],

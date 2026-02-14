@@ -17,7 +17,7 @@ let ProductsService = class ProductsService {
     constructor(db) {
         this.db = db;
     }
-    async create({ codeReference, nameProduct, description, idSubCategory, stock, measurementUnit, minStock, purchasePrice, salePrice }) {
+    async create(estId, { codeReference, nameProduct, description, idSubCategory, stock, measurementUnit, minStock, purchasePrice, salePrice }) {
         const result = await this.db.query(`
         SELECT create_product($1,$2,$3,$4,$5,$6) AS message;
       `, [
@@ -32,7 +32,6 @@ let ProductsService = class ProductsService {
         const idProduct = await this.db.query(`
         SELECT IdProduct FROM Product ORDER BY IdProduct DESC LIMIT 1;
       `);
-        console.log(idProduct[0].idproduct);
         const resultDetails = await this.db.query(`
         SELECT create_detailproduct($1, $2, $3, $4) AS message;
       `, [idProduct[0].idproduct, minStock, purchasePrice, salePrice]);
@@ -41,6 +40,10 @@ let ProductsService = class ProductsService {
         const productDetail = ResponseValidations_1.ResponseValidation.forMessage(resultDetails, "correctamente");
         if (productDetail.status !== 200)
             return productDetail;
+        await this.db.query(`
+        INSERT INTO ProductEstablishments(IdEstablishment, IdProduct)
+        VALUES ($1, $2)
+      `, [estId, idProduct]);
         return product;
     }
     async createDetail(idProduct, { minStock, purchasePrice, salePrice }) {
@@ -51,28 +54,31 @@ let ProductsService = class ProductsService {
             throw new common_1.BadRequestException('Error al crear el detalle del producto.');
         return ResponseValidations_1.ResponseValidation.forMessage(result, "correctamente");
     }
-    async findAll() {
+    async findAll(estId) {
+        console.log(estId);
         const products = await this.db.query(`
         SELECT
           p.IdProduct,
           p.code_reference,
           p.NameProduct,
-          p.Description as ProductDescription,
+          p.Description AS ProductDescription,
           p.Stock,
           p.MeasurementUnit,
           sc.IdSubCategory,
           sc.NameSubCategory,
-          sc.Description as SubCategoryDescription,
-          sc.Active as SubCategoryActive,
+          sc.Description AS SubCategoryDescription,
+          sc.Active AS SubCategoryActive,
           c.IdCategory,
           c.NameCategory,
-          c.Description as CategoryDescription,
-          c.Active as CategoryActive,
+          c.Description AS CategoryDescription,
+          c.Active AS CategoryActive,
           dp.iddetailproduct,
-          COALESCE(dp.PurchasePrice, 0) as PurchasePrice,
-          COALESCE(dp.SalePrice, 0) as SalePrice,
-          COALESCE(dp.MinStock, 0) as MinStock,
-          p.DateCreate, p.DateUpdate, p.DateDelete,
+          COALESCE(dp.PurchasePrice, 0) AS PurchasePrice,
+          COALESCE(dp.SalePrice, 0) AS SalePrice,
+          COALESCE(dp.MinStock, 0) AS MinStock,
+          p.DateCreate,
+          p.DateUpdate,
+          p.DateDelete,
           p.Active
         FROM Product p
         INNER JOIN SubCategory sc
@@ -81,34 +87,39 @@ let ProductsService = class ProductsService {
           ON sc.CategorySub = c.IdCategory
         LEFT JOIN DetailProduct dp
           ON p.IdProduct = dp.IdProduct AND dp.Active = true
+        LEFT JOIN ProductEstablishments pe
+          ON p.IdProduct = pe.IdProduct 
+        WHERE pe.IdEstablishment = $1
         ORDER BY p.IdProduct DESC;
-      `);
+      `, [estId]);
         if (!products.length)
             throw new common_1.NotFoundException('Error no hay productos en el sistema');
         return products;
     }
-    async findOne(id) {
+    async findOne(estId, id) {
         const product = await this.db.query(`
-        SELECT
+       SELECT
           p.IdProduct,
           p.code_reference,
           p.NameProduct,
-          p.Description as ProductDescription,
+          p.Description AS ProductDescription,
           p.Stock,
           p.MeasurementUnit,
           sc.IdSubCategory,
           sc.NameSubCategory,
-          sc.Description as SubCategoryDescription,
-          sc.Active as SubCategoryActive,
+          sc.Description AS SubCategoryDescription,
+          sc.Active AS SubCategoryActive,
           c.IdCategory,
           c.NameCategory,
-          c.Description as CategoryDescription,
-          c.Active as CategoryActive,
+          c.Description AS CategoryDescription,
+          c.Active AS CategoryActive,
           dp.iddetailproduct,
-          COALESCE(dp.PurchasePrice, 0) as PurchasePrice,
-          COALESCE(dp.SalePrice, 0) as SalePrice,
-          COALESCE(dp.MinStock, 0) as MinStock,
-          p.DateCreate, p.DateUpdate, p.DateDelete,
+          COALESCE(dp.PurchasePrice, 0) AS PurchasePrice,
+          COALESCE(dp.SalePrice, 0) AS SalePrice,
+          COALESCE(dp.MinStock, 0) AS MinStock,
+          p.DateCreate,
+          p.DateUpdate,
+          p.DateDelete,
           p.Active
         FROM Product p
         INNER JOIN SubCategory sc
@@ -117,10 +128,12 @@ let ProductsService = class ProductsService {
           ON sc.CategorySub = c.IdCategory
         LEFT JOIN DetailProduct dp
           ON p.IdProduct = dp.IdProduct AND dp.Active = true
-        WHERE p.IdProduct = $1
-      `, [id]);
+        INNER JOIN ProductEstablishments pe
+          ON p.IdProduct = pe.IdProduct 
+        WHERE pe.IdEstablishment = $1 AND p.IdProduct = $2;
+      `, [estId, id]);
         if (!product.length)
-            throw new common_1.BadRequestException(`Error el usuario con el ID ${id} no existe en el sistema.`);
+            throw new common_1.BadRequestException(`Error el producto con el ID ${id} no existe en el sistema.`);
         return product;
     }
     async update(id, { codeReference, nameProduct, description, idSubCategory, stock, measurementUnit, idDetail, minStock, purchasePrice, salePrice }) {
@@ -147,7 +160,7 @@ let ProductsService = class ProductsService {
             return updateDetail;
         return updateProduct;
     }
-    async remove(id) {
+    async remove(estId, id) {
         const result = await this.db.query(`
         SELECT delete_product($1) AS message;
       `, [id]);
@@ -159,9 +172,14 @@ let ProductsService = class ProductsService {
         await this.db.query(`
         UPDATE DetailProduct SET active = false WHERE IdProduct = $1
       `, [id]);
+        await this.db.query(`
+        UPDATE ProductEstablishments SET
+          Active = FALSE
+        WHERE IdEstablishment = $1 AND IdProduct = $2
+      `, [estId, id]);
         return remuve;
     }
-    async restore(id) {
+    async restore(estId, id) {
         const result = await this.db.query(`
         SELECT restore_product($1) AS message;
       `, [id]);
@@ -181,6 +199,11 @@ let ProductsService = class ProductsService {
             LIMIT 1
         );
       `, [id]);
+        await this.db.query(`
+        UPDATE ProductEstablishments SET
+          Active = FALSE
+        WHERE IdEstablishment = $1 AND IdProduct = $2
+      `, [estId, id]);
         return restore;
     }
 };

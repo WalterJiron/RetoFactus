@@ -31,8 +31,8 @@ BEGIN
 
     -- No eliminar productos con stock > 0 (política de negocio)
     IF v_current_stock > 0 THEN
-        RETURN 'Error: No se puede eliminar el producto "' || v_product_name || 
-               '" porque tiene ' || v_current_stock || ' unidades en stock.';
+        RETURN 'Error: No se puede eliminar el producto ' || v_product_name || 
+               ' porque tiene ' || v_current_stock || ' unidades en stock.';
     END IF;
 
     -- Transacción de eliminación lógica
@@ -51,7 +51,7 @@ BEGIN
             DateDelete = CURRENT_TIMESTAMP
         WHERE IdProduct = p_idproduct;
 
-        RETURN 'Producto "' || v_product_name || '" eliminado correctamente.';
+        RETURN 'Producto ' || v_product_name || ' eliminado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al eliminar producto: ' || SQLERRM;
