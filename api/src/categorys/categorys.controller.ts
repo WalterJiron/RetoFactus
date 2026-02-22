@@ -4,8 +4,6 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Auth } from '../auth/decorators/auth.decorator';
 import { Role } from '../auth/enums/role.enum';
-import { CurrentEstablishment } from '../auth/decorators/get-establishment.decorator';
-
 @Auth(Role.Admin)
 @Controller('categorys')
 export class CategorysController {

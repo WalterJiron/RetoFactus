@@ -4,6 +4,7 @@ import { CreateEstablishmentDto } from './dto/create-establishment.dto';
 import { UpdateEstablishmentDto } from './dto/update-establishment.dto';
 import { Role } from '../auth/enums/role.enum';
 import { Auth } from '../auth/decorators/auth.decorator';
+import { CurrentEstablishment } from '../auth/decorators/get-establishment.decorator';
 
 @Auth(Role.Admin)
 @Controller('establishments')
@@ -15,19 +16,21 @@ export class EstablishmentsController {
     return this.establishmentsService.create(createEstablishmentDto);
   }
 
+  // This endpoint is for the list of all establishments, only for admin users "OF SYSTEM"
   @Get()
   findAll() {
     return this.establishmentsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.establishmentsService.findOne(+id);
+  // This endpoint is for the establishment of the user that is logged in
+  @Get('/id')
+  findOne(@CurrentEstablishment() estId: number) {
+    return this.establishmentsService.findOne(estId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateEstablishmentDto: UpdateEstablishmentDto) {
-    return this.establishmentsService.update(+id, updateEstablishmentDto);
+  @Patch()
+  update(@CurrentEstablishment() estId: number, @Body() updateEstablishmentDto: UpdateEstablishmentDto) {
+    return this.establishmentsService.update(estId, updateEstablishmentDto);
   }
 
   @Delete(':id')

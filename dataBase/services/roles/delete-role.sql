@@ -1,3 +1,12 @@
+/*
+    Procedimiento: ProcDeleteRol
+    Descripcion: Realiza un soft delete (desactivacion) de un rol, siempre que no tenga
+        usuarios activos asociados. Verifica existencia y estado previo.
+    Parametros:
+        - p_idrole INT - Identificador del rol a desactivar
+    Salida:
+        - VARCHAR(100) - Mensaje de resultado (exito o error)
+*/
 CREATE OR REPLACE FUNCTION ProcDeleteRol(
     p_idrole INT,
     OUT mensaje VARCHAR(100)
@@ -9,34 +18,30 @@ DECLARE
     v_rol_name VARCHAR(50);
     v_user_count INT;
 BEGIN
-    -- Validación 1: Código obligatorio
+    -- Validacion: codigo obligatorio y positivo
     IF p_idrole IS NULL OR p_idrole <= 0 THEN
         mensaje := 'El código de rol es obligatorio y debe ser un número válido';
         RETURN;
     END IF;
     
-    -- Bloque de transacción
+    -- Bloque de transaccion
     BEGIN
         -- Verificar existencia con bloqueo FOR UPDATE
-        -- Esto previene lecturas sucias durante la transacción
-        SELECT Active, Namer INTO STRICT v_active, v_rol_name
+        SELECT Active, Name INTO STRICT v_active, v_rol_name
         FROM Roles 
         WHERE IdRole = p_idrole
-        FOR UPDATE;  -- Removido NOWAIT para mejor compatibilidad
+        FOR UPDATE;
         
-        -- NOTA: STRICT hace que si no encuentra el registro, lance una excepción
-        
-        -- Verificar si ya está eliminado (Active = FALSE)
+        -- Verificar si ya esta eliminado
         IF v_active = FALSE THEN
             mensaje := format('El rol %s (ID: %s) ya se encuentra eliminado', v_rol_name, p_idrole);
             RETURN;
         END IF;
         
         -- Verificar si hay usuarios activos asociados al rol
-        -- Contar usuarios activos para dar mensaje más informativo
         SELECT COUNT(*) INTO v_user_count
         FROM Users 
-        WHERE RoleUser = p_idrole  -- CORREGIDO: cambiado IdRole por RoleUser
+        WHERE RoleUser = p_idrole
           AND Active = TRUE;
         
         IF v_user_count > 0 THEN
@@ -63,20 +68,16 @@ BEGIN
         mensaje := format('Rol %s desactivado correctamente', v_rol_name);
         
     EXCEPTION
-        -- Excepción específica cuando no se encuentra el registro
         WHEN NO_DATA_FOUND THEN
             mensaje := format('El rol con ID %s no existe en la base de datos', p_idrole);
             RETURN;
-        -- Excepción cuando el registro está bloqueado por otra transacción
-        WHEN lock_not_available THEN  -- CORREGIDO: snake_case para consistencia
+        WHEN lock_not_available THEN
             mensaje := 'El rol está siendo modificado por otro usuario. Intente nuevamente en unos momentos';
             RETURN;
         WHEN OTHERS THEN
-            -- Asegurar que siempre haya un mensaje de retorno
             IF mensaje IS NULL OR mensaje = '' THEN
                 mensaje := 'Error al desactivar rol: ' || SQLERRM;
             END IF;
-            -- Re-lanzar la excepción original para rollback automático
             RAISE;
     END;
     

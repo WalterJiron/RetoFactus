@@ -11,16 +11,17 @@ import { Role } from '../auth/enums/role.enum';
 export class UsersService {
   constructor(private readonly db: DataSource) { }
 
-  async create({ nameUser, email, password, role }: CreateUserDto) {
+  async create(estId: number, { nameUser, email, password, role }: CreateUserDto) {
     const result = await this.db.query(
       `
-        SELECT create_users($1, $2, $3, $4) AS message
+        SELECT create_users($1, $2, $3, $4, $5) AS message
       `,
       [
         nameUser,
         email,
         password,
         role,
+        estId,
       ]
     );
 
@@ -29,7 +30,7 @@ export class UsersService {
     return ResponseValidation.forMessage(result, "correctamente");
   }
 
-  async findAll() {
+  async findAll(estId: number) {
     const users = await this.db.query(
       `
         SELECT
@@ -37,7 +38,7 @@ export class UsersService {
           U.nameuser as name,
           U.email,
           U.roleuser as id_role,
-          R.namer as role_name,
+          R.name as role_name,
           U.lastlogin,
           U.Datecreate,
           U.DateUpdate,
@@ -45,8 +46,9 @@ export class UsersService {
         FROM users AS U
         LEFT JOIN roles AS R
           ON U.roleuser = R.idrole
+        WHERE U.IdEstablishment = $1
         ORDER BY U.iduser DESC;
-      `
+      `, [estId]
     );
 
     if (!users.length) throw new NotFoundException('No hay usuarios ingresados en el sistema.');
@@ -54,7 +56,7 @@ export class UsersService {
     return users;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, estId: number) {
     const user = await this.db.query(
       `
         SELECT
@@ -62,7 +64,7 @@ export class UsersService {
           U.nameuser as name,
           U.email,
           U.roleuser as id_role,
-          R.namer as role_name,
+          R.name as role_name,
           U.lastlogin,
           U.Datecreate,
           U.DateUpdate,
@@ -70,8 +72,8 @@ export class UsersService {
         FROM users AS U
         LEFT JOIN roles AS R
           ON U.roleuser = R.idrole
-        WHERE U.iduser = $1;
-      `, [id]
+        WHERE U.iduser = $1 AND U.IdEstablishment = $2;
+      `, [id, estId]
     );
 
     if (!user.length) throw new BadRequestException(`El usuario con el id ${id} no se encuentra en el sistema.`);
@@ -79,14 +81,15 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, { nameUser, email, password, role }: UpdateUserDto) {
+  async update(id: number, { nameUser, email, password, role }: UpdateUserDto, estId: number) {
     const result = await this.db.query(
       `
-        SELECT update_users($1, $2, $3, $4, $5) AS message;
+        SELECT update_users($1, $2, $3, $4, $5, $6) AS message;
       `,
       [
         id, nameUser,
-        email, password, role,
+        email, password,
+        role, estId,
       ]
     );
 

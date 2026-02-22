@@ -1,11 +1,11 @@
 /*
-  Función: verify_user
-  Descripción: Verifica credenciales de usuario (email y contraseña).
-  Parámetros:
+  Funcion: verify_user
+  Descripcion: Verifica credenciales de usuario (email y contraseña).
+  Parametros:
     - p_email: Email del usuario.
     - p_password: Contraseña en texto plano.
   Retorna:
-    - VARCHAR(100): 'Ok' si las credenciales son válidas y el usuario está activo,
+    - VARCHAR(100): 'Ok' si las credenciales son validas y el usuario esta activo,
       mensaje de error en caso contrario.
 */
 
@@ -54,7 +54,7 @@ BEGIN
         RETURN 'Error: Usuario inactivo o eliminado.';
     END IF;
 
-    -- Validar que el usuario esté asignado a un establecimiento
+    -- Validar que el usuario este asignado a un establecimiento
     IF v_establishment_id IS NULL THEN
         RETURN 'Error: Credenciales inválidas o usuario inactivo.'; 
     END IF;
@@ -68,7 +68,7 @@ BEGIN
         RETURN 'Error: Credenciales inválidas o usuario inactivo.';
     END IF;
 
-    -- Actualizar último acceso
+    -- Actualizar ultimo acceso
     UPDATE Users SET 
         LastLogin = CURRENT_TIMESTAMP
     WHERE IdUser = v_user_id;

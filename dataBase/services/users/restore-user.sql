@@ -1,10 +1,10 @@
 /*
-  Función: restore_users
-  Descripción: Restaura un usuario eliminado lógicamente.
-  Parámetros:
+  Funcion: restore_users
+  Descripcion: Restaura un usuario eliminado logicamente.
+  Parametros:
     - p_iduser: ID del usuario a restaurar (debe existir y estar inactivo).
   Retorna:
-    - VARCHAR(100): mensaje de éxito o error.
+    - VARCHAR(100): mensaje de exito o error.
 */
 
 CREATE OR REPLACE FUNCTION restore_users(p_iduser BIGINT)
@@ -14,7 +14,9 @@ AS $$
 DECLARE
     v_email VARCHAR(100);
     v_role_id INTEGER;
+    v_establishment_id INTEGER;
     v_role_active BOOLEAN;
+    v_estab_active BOOLEAN;
 BEGIN
     -- Verificar existencia
     IF NOT EXISTS (SELECT 1 FROM Users WHERE IdUser = p_iduser) THEN
@@ -27,7 +29,7 @@ BEGIN
     END IF;
 
     -- Obtener datos del usuario
-    SELECT Email, RoleUser INTO v_email, v_role_id 
+    SELECT Email, RoleUser, IdEstablishment INTO v_email, v_role_id, v_establishment_id
     FROM Users WHERE IdUser = p_iduser;
 
     -- Validar que no exista otro usuario activo con el mismo email
@@ -41,7 +43,7 @@ BEGIN
         RETURN 'Error: Existe otro usuario activo con el mismo email. No se puede restaurar.';
     END IF;
 
-    -- Verificar que el rol del usuario aún exista y esté activo
+    -- Verificar que el rol del usuario aun exista y esté activo
     SELECT Active INTO v_role_active FROM Roles WHERE IdRole = v_role_id;
     IF NOT FOUND THEN
         RETURN 'Error: El rol asignado al usuario ya no existe.';
@@ -50,7 +52,16 @@ BEGIN
         RETURN 'Error: El rol asignado al usuario está inactivo.';
     END IF;
 
-    -- Transacción de restauración
+    -- Verificar que el establecimiento del usuario aun exista y esté activo
+    SELECT Active INTO v_estab_active FROM Establishments WHERE IdEstablishment = v_establishment_id;
+    IF NOT FOUND THEN
+        RETURN 'Error: El establecimiento asignado al usuario ya no existe.';
+    END IF;
+    IF NOT v_estab_active THEN
+        RETURN 'Error: El establecimiento asignado al usuario está inactivo.';
+    END IF;
+
+    -- Transaccion de restauracion
     BEGIN
         UPDATE Users
         SET 

@@ -4,6 +4,7 @@ import { ResponseValidation } from '../utils/ResponseValidations';
 import { CreateProductFullDto } from './dto/create-product-full.dto';
 import { UpdateProductFullDto } from './dto/update-product-full.dto';
 import { CreateProductDetailsDto } from './dto/create-prodestDetails.dto';
+import { Console } from 'console';
 
 @Injectable()
 export class ProductsService {
@@ -49,11 +50,14 @@ export class ProductsService {
     const productDetail = ResponseValidation.forMessage(resultDetails, "correctamente");
     if (productDetail.status !== 200) return productDetail;
 
+
+    console.log(estId, '  ', idProduct)
+
     await this.db.query(
       `
         INSERT INTO ProductEstablishments(IdEstablishment, IdProduct)
-        VALUES ($1, $2)
-      `, [estId, idProduct]
+        VALUES ($1, $2);
+      `, [estId, idProduct[0].idproduct]
     )
 
 
@@ -78,8 +82,6 @@ export class ProductsService {
   }
 
   async findAll(estId: number) {
-    console.log(estId)
-
     const products = await this.db.query(
       `
         SELECT

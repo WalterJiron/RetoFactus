@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { SubCategoryModule } from './sub_category/sub_category.module';
 import { ThrottleConfigModule } from './configs/throttle-config.module';
 import { EstablishmentsModule } from './establishments/establishments.module';
+import { PaymentFormsModule } from './payment_forms/payment_forms.module';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { EstablishmentsModule } from './establishments/establishments.module';
     }),
     DatabaseModule,
 
-    ThrottleConfigModule,   // for route security
+    ThrottleConfigModule,
 
     RolesModule,
 
@@ -34,6 +35,8 @@ import { EstablishmentsModule } from './establishments/establishments.module';
     SubCategoryModule,
 
     EstablishmentsModule,
+
+    PaymentFormsModule,
   ],
   controllers: [],
   providers: [],

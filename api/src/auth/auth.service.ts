@@ -3,7 +3,6 @@ import { SignInDto } from './dto/signIn.dto';
 import { DataSource } from 'typeorm';
 import { ResponseValidation } from '../utils/ResponseValidations';
 import { JwtService } from '@nestjs/jwt';
-// import { jwtConstants } from './constants/constants';
 
 @Injectable()
 export class AuthService {

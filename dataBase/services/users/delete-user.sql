@@ -1,10 +1,10 @@
 /*
-  Función: delete_users
-  Descripción: Eliminación lógica de un usuario.
-  Parámetros:
+  Funcion: delete_users
+  Descripcion: Eliminacion logica de un usuario.
+  Parametros:
     - p_iduser: ID del usuario a eliminar (debe existir y estar activo).
   Retorna:
-    - VARCHAR(100): mensaje de éxito o error.
+    - VARCHAR(100): mensaje de exito o error.
 */
 
 CREATE OR REPLACE FUNCTION delete_users(p_iduser BIGINT)
@@ -25,7 +25,7 @@ BEGIN
         RETURN 'Error: El usuario ya está eliminado.';
     END IF;
 
-    -- Validación de negocio: No permitir eliminar el último usuario administrador
+    -- Validacion de negocio: No permitir eliminar el ultimo usuario administrador
     -- Asumiendo que el rol con IdRole = 1 es el administrador
     SELECT RoleUser INTO v_role_id FROM Users WHERE IdUser = p_iduser;
     
@@ -39,7 +39,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- Transacción de eliminación lógica
+    -- Transaccion de eliminacion logica
     BEGIN
         UPDATE Users
         SET 

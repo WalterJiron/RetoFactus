@@ -1,14 +1,15 @@
 /*
-  Función: update_users
-  Descripción: Actualiza un usuario existente con validaciones.
-  Parámetros:
+  Funcion: update_users
+  Descripcion: Actualiza un usuario existente con validaciones.
+  Parametros:
     - p_iduser: ID del usuario (debe existir y estar activo).
     - p_nameuser: Nuevo nombre (opcional, 2-50 caracteres).
-    - p_email: Nuevo email (opcional, formato válido, único).
-    - p_password: Nueva contraseña (opcional, debe cumplir políticas de seguridad).
+    - p_email: Nuevo email (opcional, formato valido, unico).
+    - p_password: Nueva contrasenia (opcional, debe cumplir politicas de seguridad).
     - p_roleuser: Nuevo rol (opcional, debe existir y estar activo).
+    - p_idestablishment: Nuevo establecimiento (opcional, debe existir y estar activo).
   Retorna:
-    - VARCHAR(100): mensaje de éxito o error.
+    - VARCHAR(100): mensaje de exito o error.
 */
 
 CREATE OR REPLACE FUNCTION update_users(
@@ -16,7 +17,8 @@ CREATE OR REPLACE FUNCTION update_users(
     p_nameuser VARCHAR(50) DEFAULT NULL,
     p_email VARCHAR(100) DEFAULT NULL,
     p_password TEXT DEFAULT NULL,
-    p_roleuser INTEGER DEFAULT NULL
+    p_roleuser INTEGER DEFAULT NULL,
+    p_idestablishment INTEGER DEFAULT NULL
 )
 RETURNS VARCHAR(100)
 LANGUAGE plpgsql
@@ -24,6 +26,7 @@ AS $$
 DECLARE
     v_user_active BOOLEAN;
     v_role_active BOOLEAN;
+    v_estab_active BOOLEAN;
     v_current_email VARCHAR(100);
     v_password_error_msg TEXT;
 BEGIN
@@ -66,7 +69,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- Validar contraseña si se proporciona
+    -- Validar contrasenia si se proporciona
     IF p_password IS NOT NULL THEN
         IF NOT validate_password_strength(p_password) THEN
             v_password_error_msg := 
@@ -80,9 +83,7 @@ BEGIN
             RETURN v_password_error_msg;
         END IF;
         
-        -- Validar que la nueva contraseña no sea igual a las últimas 5 contraseñas
-        -- (esto sería una tabla adicional de historial de contraseñas)
-        -- Por ahora, solo validamos que no sea igual a la actual
+        -- Validar que la nueva contrasenia no sea igual a la actual
         IF crypt(p_password, (SELECT PasswordUserHash FROM Users WHERE IdUser = p_iduser)) = 
            (SELECT PasswordUserHash FROM Users WHERE IdUser = p_iduser) THEN
             RETURN 'Error: La nueva contraseña no puede ser igual a la actual.';
@@ -100,7 +101,18 @@ BEGIN
         END IF;
     END IF;
 
-    -- Transacción de actualización
+    -- Validar establecimiento si se proporciona
+    IF p_idestablishment IS NOT NULL THEN
+        SELECT Active INTO v_estab_active FROM Establishments WHERE IdEstablishment = p_idestablishment;
+        IF NOT FOUND THEN
+            RETURN 'Error: El establecimiento especificado no existe.';
+        END IF;
+        IF NOT v_estab_active THEN
+            RETURN 'Error: El establecimiento especificado no está activo.';
+        END IF;
+    END IF;
+
+    -- Transaccion de actualizacion
     BEGIN
         UPDATE Users
         SET
@@ -111,6 +123,7 @@ BEGIN
                 ELSE PasswordUserHash
             END,
             RoleUser = COALESCE(p_roleuser, RoleUser),
+            IdEstablishment = COALESCE(p_idestablishment, IdEstablishment),
             DateUpdate = CURRENT_TIMESTAMP
         WHERE IdUser = p_iduser;
 
@@ -119,7 +132,7 @@ BEGIN
         WHEN unique_violation THEN
             RETURN 'Error: El email ya está registrado por otro usuario.';
         WHEN foreign_key_violation THEN
-            RETURN 'Error: El rol especificado no existe.';
+            RETURN 'Error: El rol o establecimiento especificado no existe.';
         WHEN OTHERS THEN
             RETURN 'Error al actualizar usuario: ' || SQLERRM;
     END;

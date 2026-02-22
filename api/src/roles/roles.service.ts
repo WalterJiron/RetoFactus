@@ -9,14 +9,15 @@ export class RolesService {
 
   constructor(private readonly db: DataSource) { }
 
-  async create({ name, description }: CreateRoleDto) {
+  async create(estId: number, { name, description }: CreateRoleDto) {
     const result = await this.db.query(
       `
-        SELECT ProcInsertRol($1, $2) AS message;
+        SELECT ProcInsertRol($1, $2, $3) AS message;
       `,
       [
         name,
         description,
+        estId,
       ]
     );
 
@@ -25,12 +26,12 @@ export class RolesService {
     return ResponseValidation.forMessage(result, "registrado correctamente");
   }
 
-  async findAll() {
+  async findAll(estId: number) {
     const roles = await this.db.query(
       `
         SELECT
           idrole as id,
-            namer as name_rol,
+            name as name_rol,
             description,
             TO_CHAR(
                 datecreate AT TIME ZONE 'America/Managua',
@@ -38,8 +39,9 @@ export class RolesService {
             ) as datecreate_local,
             active
         FROM roles
+        WHERE idestablishment = $1
         ORDER BY idrole DESC;
-      `
+      `, [estId]
     );
 
     if (!roles.length) throw new NotFoundException('No hay roles registrados');
@@ -47,12 +49,12 @@ export class RolesService {
     return roles;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, estId: number) {
     const role = await this.db.query(
       `
         SELECT
           idrole as id,
-            namer as name_rol,
+            name as name_rol,
             description,
             TO_CHAR(
                 datecreate AT TIME ZONE 'America/Managua',
@@ -60,8 +62,8 @@ export class RolesService {
             ) as datecreate_local,
             active
         FROM roles
-        WHERE idrole = $1;
-      `, [id]
+        WHERE idrole = $1 AND idestablishment = $2;
+      `, [id, estId]
     );
 
     if (!role.length) throw new BadRequestException(`El rol con id ${id} no existe`);
