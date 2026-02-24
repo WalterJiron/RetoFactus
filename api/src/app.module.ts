@@ -11,6 +11,8 @@ import { SubCategoryModule } from './sub_category/sub_category.module';
 import { ThrottleConfigModule } from './configs/throttle-config.module';
 import { EstablishmentsModule } from './establishments/establishments.module';
 import { PaymentFormsModule } from './payment_forms/payment_forms.module';
+import { FactusModule } from './factus/factus.module';
+import { CustomersModule } from './customers/customers.module';
 
 @Module({
   imports: [
@@ -22,21 +24,25 @@ import { PaymentFormsModule } from './payment_forms/payment_forms.module';
 
     ThrottleConfigModule,
 
+    AuthModule,
+
+    EstablishmentsModule,
+
     RolesModule,
 
     UsersModule,
 
-    ProductsModule,
-
     CategorysModule,
-
-    AuthModule,
 
     SubCategoryModule,
 
-    EstablishmentsModule,
+    ProductsModule,
 
     PaymentFormsModule,
+
+    CustomersModule,
+
+    FactusModule,
   ],
   controllers: [],
   providers: [],

@@ -2,15 +2,13 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PaymentFormsService } from './payment_forms.service';
 import { CreatePaymentFormDto } from './dto/create-payment_form.dto';
 import { UpdatePaymentFormDto } from './dto/update-payment_form.dto';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../auth/enums/role.enum';
 
+@Auth(Role.Vendedor, Role.Admin)
 @Controller('payment-forms')
 export class PaymentFormsController {
-  constructor(private readonly paymentFormsService: PaymentFormsService) {}
-
-  @Post()
-  create(@Body() createPaymentFormDto: CreatePaymentFormDto) {
-    return this.paymentFormsService.create(createPaymentFormDto);
-  }
+  constructor(private readonly paymentFormsService: PaymentFormsService) { }
 
   @Get()
   findAll() {
@@ -18,17 +16,7 @@ export class PaymentFormsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.paymentFormsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePaymentFormDto: UpdatePaymentFormDto) {
-    return this.paymentFormsService.update(+id, updatePaymentFormDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.paymentFormsService.remove(+id);
   }
 }

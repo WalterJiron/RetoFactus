@@ -13,6 +13,7 @@ CREATE TABLE Establishments (
 	Active BOOLEAN DEFAULT TRUE
 );
 
+
 CREATE TABLE Roles(
     IdRole SERIAL PRIMARY KEY NOT NULL,
     Name VARCHAR(50) NOT NULL,
@@ -106,6 +107,7 @@ CREATE TABLE ProductEstablishments (
     Active BOOLEAN DEFAULT TRUE 
 );
 
+--- API Factus
 CREATE TABLE PaymentForms (
     IdPaymentForm SERIAL PRIMARY KEY NOT NULL,
     Code VARCHAR(10) NOT NULL UNIQUE,
@@ -116,25 +118,15 @@ CREATE TABLE PaymentForms (
     DateDelete TIMESTAMPTZ
 );
 
-CREATE TABLE PaymentMethods (
-    IdPaymentMethod SERIAL PRIMARY KEY NOT NULL,
-    Code VARCHAR(10) NOT NULL UNIQUE,
-    Name VARCHAR(100) NOT NULL,
-    Active BOOLEAN DEFAULT TRUE,
-    DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    DateUpdate TIMESTAMPTZ,
-    DateDelete TIMESTAMPTZ
-);
 
 CREATE TABLE Customers (
     IdCustomer BIGSERIAL PRIMARY KEY NOT NULL,
     Identification VARCHAR(50) NOT NULL UNIQUE,
-    Names VARCHAR(255) NOT NULL,
-    Address TEXT,
-    Email VARCHAR(255),
-    Phone VARCHAR(50),
-    LegalOrganizationId INT,  -- ID de API Factus (tipo de organización)
-    TributeId INT,            -- ID de API Factus (régimen de tributación)
+    Names VARCHAR(100) NOT NULL,
+    Address TEXT NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Phone VARCHAR(50) UNIQUE NOT NULL,
+    TributeId INT,            -- ID de API Factus (regimen de tributación)
     IdentificationDocumentId INT, -- ID de API Factus (tipo de documento)
     MunicipalityId INT,       -- ID de API Factus (municipio)
     
@@ -159,11 +151,10 @@ CREATE SEQUENCE secuencia_venta START 1;
 
 CREATE TABLE Sale (
     IdInternal BIGINT PRIMARY KEY DEFAULT nextval('secuencia_venta'),
-    ReferenceCode VARCHAR(20) UNIQUE DEFAULT 'VENTA-' || LPAD(nextval('secuencia_venta')::TEXT, 7, '0'),  -- Código público
+    ReferenceCode VARCHAR(20) UNIQUE DEFAULT 'VENTA-' || LPAD(nextval('secuencia_venta')::TEXT, 7, '0'),  -- Codigo publico
     EstablishmentId INT NOT NULL REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE,
     CustomerId BIGINT NOT NULL REFERENCES Customers(IdCustomer) ON DELETE RESTRICT ON UPDATE CASCADE,
     PaymentFormId INT NOT NULL REFERENCES PaymentForms(IdPaymentForm) ON DELETE RESTRICT ON UPDATE CASCADE,
-    PaymentMethodId INT NOT NULL REFERENCES PaymentMethods(IdPaymentMethod) ON DELETE RESTRICT ON UPDATE CASCADE,
    
     SaleDate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     Subtotal DECIMAL(15,2) NOT NULL,
@@ -186,7 +177,7 @@ CREATE TABLE SaleDetails (
     Subtotal DECIMAL(15,2) NOT NULL,  -- (Quantity * UnitPrice) * (1 - DiscountRate/100)
     TaxRate DECIMAL(5,2) NOT NULL,  -- Porcentaje de impuesto aplicado
     TributeId INT REFERENCES Tributes(IdTribute) ON DELETE RESTRICT ON UPDATE CASCADE,  -- Tipo de impuesto (opcional)
-    IsExcluded BOOLEAN DEFAULT FALSE,  -- Indica si está excluido de impuestos
+    IsExcluded BOOLEAN DEFAULT FALSE,  -- Indica si esta excluido de impuestos
     UnitMeasureId INT NOT NULL,  -- ID de unidad de medida (API Factus)
     
     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -1428,7 +1419,7 @@ DECLARE
     v_last_attempt TIMESTAMPTZ;
     v_account_locked BOOLEAN DEFAULT false;
 BEGIN
-    -- Validar parámetros
+    -- Validar parametros
     IF p_email IS NULL OR p_password IS NULL THEN
         RETURN 'Error: Email y contraseña son obligatorios.';
     END IF;
@@ -1489,13 +1480,13 @@ $$;
 
 --------------------------------------------- CRUD Category ---------------------------------------------
 /*
-  Función: validate_category_name_unique
-  Descripción: Función auxiliar para validar unicidad del nombre de categoría.
-  Parámetros:
+  Funcion: validate_category_name_unique
+  Descripcion: Funcion auxiliar para validar unicidad del nombre de categoría.
+  Parametros:
     - p_namecategory: Nombre a validar.
     - p_exclude_id: ID de categoría a excluir (opcional).
   Retorna:
-    - BOOLEAN: true si el nombre es único, false si no lo es.
+    - BOOLEAN: true si el nombre es unico, false si no lo es.
 */
 CREATE OR REPLACE FUNCTION validate_category_name_unique(
     p_namecategory VARCHAR(60),
@@ -1525,11 +1516,11 @@ $$;
 
 
 /*
-  Función: create_category
-  Descripción: Inserta una nueva categoría aplicando validaciones de negocio.
-  Parámetros:
-    - p_namecategory: Nombre de la categoría (2-60 caracteres, único).
-    - p_description: Descripción de la categoría (no vacía).
+  Funcion: create_category
+  Descripcion: Inserta una nueva categoría aplicando validaciones de negocio.
+  Parametros:
+    - p_namecategory: Nombre de la categoría (2-60 caracteres, unico).
+    - p_description: Descripcion de la categoría (no vacía).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
 */
@@ -1546,7 +1537,7 @@ DECLARE
 BEGIN
     -- Campos obligatorios no nulos
     IF p_namecategory IS NULL OR p_description IS NULL THEN
-        RETURN 'Error: Nombre y descripción son obligatorios.';
+        RETURN 'Error: Nombre y descripcion son obligatorios.';
     END IF;
 
     -- Validar longitud del nombre
@@ -1554,12 +1545,12 @@ BEGIN
         RETURN 'Error: El nombre debe tener entre 2 y 60 caracteres.';
     END IF;
 
-    -- Validar que la descripción no esté vacía
+    -- Validar que la descripcion no esté vacía
     IF TRIM(p_description) = '' THEN
-        RETURN 'Error: La descripción no puede estar vacía.';
+        RETURN 'Error: La descripcion no puede estar vacía.';
     END IF;
 
-    -- Validar unicidad del nombre usando la función auxiliar
+    -- Validar unicidad del nombre usando la funcion auxiliar
     IF NOT validate_category_name_unique(p_namecategory) THEN
         RETURN 'Error: Ya existe una categoría activa con ese nombre.';
     END IF;
@@ -1596,12 +1587,12 @@ $$;
 
 
 /*
-  Función: update_category
-  Descripción: Actualiza una categoría existente con validaciones.
-  Parámetros:
+  Funcion: update_category
+  Descripcion: Actualiza una categoría existente con validaciones.
+  Parametros:
     - p_idcategory: ID de la categoría (debe existir y estar activa).
-    - p_namecategory: Nuevo nombre (opcional, 2-60 caracteres, único).
-    - p_description: Nueva descripción (opcional, no vacía).
+    - p_namecategory: Nuevo nombre (opcional, 2-60 caracteres, unico).
+    - p_description: Nueva descripcion (opcional, no vacía).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
 */
@@ -1637,16 +1628,16 @@ BEGIN
         
         -- Solo validar unicidad si el nombre es diferente al actual
         IF TRIM(p_namecategory) != v_current_name THEN
-            -- Verificar unicidad excluyendo la categoría actual usando la función auxiliar
+            -- Verificar unicidad excluyendo la categoría actual usando la funcion auxiliar
             IF NOT validate_category_name_unique(p_namecategory, p_idcategory) THEN
                 RETURN 'Error: Ya existe otra categoría activa con ese nombre.';
             END IF;
         END IF;
     END IF;
 
-    -- Validar descripción si se proporciona
+    -- Validar descripcion si se proporciona
     IF p_description IS NOT NULL AND TRIM(p_description) = '' THEN
-        RETURN 'Error: La descripción no puede estar vacía.';
+        RETURN 'Error: La descripcion no puede estar vacía.';
     END IF;
 
     -- Transacción de actualización
@@ -1672,9 +1663,9 @@ $$;
 
 
 /*
-  Función: delete_category
-  Descripción: Eliminación lógica de una categoría con validaciones de dependencias.
-  Parámetros:
+  Funcion: delete_category
+  Descripcion: Eliminación lógica de una categoría con validaciones de dependencias.
+  Parametros:
     - p_idcategory: ID de la categoría a eliminar (debe existir y estar activa).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -1761,9 +1752,9 @@ $$;
 
 
 /*
-  Función: restore_category
-  Descripción: Restaura una categoría eliminada lógicamente.
-  Parámetros:
+  Funcion: restore_category
+  Descripcion: Restaura una categoría eliminada lógicamente.
+  Parametros:
     - p_idcategory: ID de la categoría a restaurar (debe existir y estar inactiva).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -1824,11 +1815,11 @@ $$;
 
 ---------------------------------------------------- CRUD SUB CATEGORY ----------------------------------------------------
 /*
-  Función: create_subcategory
-  Descripción: Inserta una nueva subcategoría aplicando validaciones de negocio.
-  Parámetros:
-    - p_namesubcategory: Nombre de la subcategoría (2-60 caracteres, único en la categoría).
-    - p_description: Descripción de la subcategoría (no vacía).
+  Funcion: create_subcategory
+  Descripcion: Inserta una nueva subcategoría aplicando validaciones de negocio.
+  Parametros:
+    - p_namesubcategory: Nombre de la subcategoría (2-60 caracteres, unico en la categoría).
+    - p_description: Descripcion de la subcategoría (no vacía).
     - p_categorysub: ID de la categoría padre (debe existir y estar activa).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -1858,9 +1849,9 @@ BEGIN
         RETURN 'Error: El nombre debe tener entre 2 y 60 caracteres.';
     END IF;
 
-    --Validar que la descripción no esté vacía
+    --Validar que la descripcion no esté vacía
     IF TRIM(p_description) = '' THEN
-        RETURN 'Error: La descripción no puede estar vacía.';
+        RETURN 'Error: La descripcion no puede estar vacía.';
     END IF;
 
     -- Verificar existencia y estado de la categoría padre
@@ -1914,12 +1905,12 @@ $$;
 
 
 /*
-  Función: update_subcategory
-  Descripción: Actualiza una subcategoría existente con validaciones.
-  Parámetros:
+  Funcion: update_subcategory
+  Descripcion: Actualiza una subcategoría existente con validaciones.
+  Parametros:
     - p_idsubcategory: ID de la subcategoría a actualizar (debe existir y estar activa).
-    - p_namesubcategory: Nuevo nombre (opcional, 2-60 caracteres, único en la categoría).
-    - p_description: Nueva descripción (opcional, no vacía).
+    - p_namesubcategory: Nuevo nombre (opcional, 2-60 caracteres, unico en la categoría).
+    - p_description: Nueva descripcion (opcional, no vacía).
     - p_categorysub: Nueva categoría padre (opcional, debe existir y estar activa).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -1982,9 +1973,9 @@ BEGIN
         END;
     END IF;
 
-    -- 3. Validar descripción si se proporciona
+    -- 3. Validar descripcion si se proporciona
     IF p_description IS NOT NULL AND TRIM(p_description) = '' THEN
-        RETURN 'Error: La descripción no puede estar vacía.';
+        RETURN 'Error: La descripcion no puede estar vacía.';
     END IF;
 
     -- 4. Validar categoría si se proporciona
@@ -2045,9 +2036,9 @@ $$;
 
 
 /*
-  Función: delete_subcategory
-  Descripción: Eliminación lógica de una subcategoría con validaciones de dependencias.
-  Parámetros:
+  Funcion: delete_subcategory
+  Descripcion: Eliminación lógica de una subcategoría con validaciones de dependencias.
+  Parametros:
     - p_idsubcategory: ID de la subcategoría a eliminar (debe existir y estar activa).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -2116,9 +2107,9 @@ $$;
 
 
 /*
-  Función: restore_subcategory
-  Descripción: Restaura una subcategoría eliminada lógicamente.
-  Parámetros:
+  Funcion: restore_subcategory
+  Descripcion: Restaura una subcategoría eliminada lógicamente.
+  Parametros:
     - p_idsubcategory: ID de la subcategoría a restaurar (debe existir y estar inactiva).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -2195,12 +2186,12 @@ $$;
 
 ---------------------------------------------------- CRUD PRODUCT  ----------------------------------------------------
 /*
-  Función: create_product
-  Descripción: Inserta un nuevo producto aplicando validaciones de negocio.
-  Parámetros:
-    - p_code_reference: Código de referencia único (opcional, único si se proporciona).
+  Funcion: create_product
+  Descripcion: Inserta un nuevo producto aplicando validaciones de negocio.
+  Parametros:
+    - p_code_reference: Código de referencia unico (opcional, unico si se proporciona).
     - p_nameproduct: Nombre del producto (2-80 caracteres).
-    - p_description: Descripción del producto (no vacía).
+    - p_description: Descripcion del producto (no vacía).
     - p_idsubcategory: ID de la subcategoría (debe existir y estar activa).
     - p_stock: Stock inicial (>= 0).
     - p_measurementunit: Unidad de medida (entero positivo, representa tipo de unidad).
@@ -2236,9 +2227,9 @@ BEGIN
         RETURN 'Error: El nombre debe tener entre 2 y 80 caracteres.';
     END IF;
 
-    -- Validar que la descripción no esté vacía
+    -- Validar que la descripcion no esté vacía
     IF TRIM(p_description) = '' THEN
-        RETURN 'Error: La descripción no puede estar vacía.';
+        RETURN 'Error: La descripcion no puede estar vacía.';
     END IF;
 
     -- Validar stock no negativo
@@ -2329,13 +2320,13 @@ $$;
 
 
 /*
-  Función: update_product
-  Descripción: Actualiza un producto existente con validaciones.
-  Parámetros:
+  Funcion: update_product
+  Descripcion: Actualiza un producto existente con validaciones.
+  Parametros:
     - p_idproduct: ID del producto a actualizar (debe existir y estar activo).
-    - p_code_reference: Nuevo código de referencia (opcional, único si se proporciona).
+    - p_code_reference: Nuevo código de referencia (opcional, unico si se proporciona).
     - p_nameproduct: Nuevo nombre (opcional, 2-80 caracteres).
-    - p_description: Nueva descripción (opcional, no vacía).
+    - p_description: Nueva descripcion (opcional, no vacía).
     - p_idsubcategory: Nueva subcategoría (opcional, debe existir y estar activa).
     - p_stock: Nuevo stock (opcional, >= 0).
     - p_measurementunit: Nueva unidad de medida (opcional, entero positivo).
@@ -2404,9 +2395,9 @@ BEGIN
         END;
     END IF;
 
-    -- Validar descripción si se proporciona
+    -- Validar descripcion si se proporciona
     IF p_description IS NOT NULL AND TRIM(p_description) = '' THEN
-        RETURN 'Error: La descripción no puede estar vacía.';
+        RETURN 'Error: La descripcion no puede estar vacía.';
     END IF;
 
     -- Validar stock si se proporciona
@@ -2507,9 +2498,9 @@ $$;
 
 
 /*
-  Función: delete_product
-  Descripción: Eliminación lógica de un producto con validaciones.
-  Parámetros:
+  Funcion: delete_product
+  Descripcion: Eliminación lógica de un producto con validaciones.
+  Parametros:
     - p_idproduct: ID del producto a eliminar (debe existir y estar activo).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -2569,9 +2560,9 @@ $$;
 
 
 /*
-  Función: restore_product
-  Descripción: Restaura un producto eliminado lógicamente.
-  Parámetros:
+  Funcion: restore_product
+  Descripcion: Restaura un producto eliminado lógicamente.
+  Parametros:
     - p_idproduct: ID del producto a restaurar (debe existir y estar inactivo).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -2673,9 +2664,9 @@ $$;
 
 
 /*
-  Función: update_product_stock
-  Descripción: Actualiza el stock de un producto (incremento o decremento).
-  Parámetros:
+  Funcion: update_product_stock
+  Descripcion: Actualiza el stock de un producto (incremento o decremento).
+  Parametros:
     - p_idproduct: ID del producto.
     - p_quantity_change: Cambio en la cantidad (positivo para incrementar, negativo para disminuir).
     - p_operation: Tipo de operación ('INCREMENT' o 'DECREMENT').
@@ -2695,7 +2686,7 @@ DECLARE
     v_current_stock INTEGER;
     v_product_name VARCHAR(80);
 BEGIN
-    -- Validar parámetros
+    -- Validar parametros
     IF p_quantity_change <= 0 THEN
         RETURN 'Error: El cambio en cantidad debe ser mayor a cero.';
     END IF;
@@ -2746,10 +2737,10 @@ $$;
 ---------------------------------------------------- PRODUCTS DETALS ----------------------------------------------------
 
 /*
-  Función: create_detailproduct
-  Descripción: Inserta un nuevo detalle de producto aplicando validaciones de negocio.
+  Funcion: create_detailproduct
+  Descripcion: Inserta un nuevo detalle de producto aplicando validaciones de negocio.
                Solo un detalle activo por producto. Al crear uno nuevo, se desactivan los anteriores.
-  Parámetros:
+  Parametros:
     - p_idproduct: ID del producto (debe existir y estar activo).
     - p_minstock: Stock mínimo (>= 0).
     - p_purchaseprice: Precio de compra (>= 0.001).
@@ -2861,9 +2852,9 @@ $$;
 
 
 /*
-  Función: update_detailproduct
-  Descripción: Actualiza un detalle de producto existente con validaciones.
-  Parámetros:
+  Funcion: update_detailproduct
+  Descripcion: Actualiza un detalle de producto existente con validaciones.
+  Parametros:
     - p_iddetailproduct: ID del detalle a actualizar (debe existir y estar activo).
     - p_minstock: Nuevo stock mínimo (opcional, >= 0).
     - p_purchaseprice: Nuevo precio de compra (opcional, >= 0.001).
@@ -2960,9 +2951,9 @@ $$;
 
 
 /*
-  Función: delete_detailproduct
-  Descripción: Eliminación lógica de un detalle de producto con validaciones.
-  Parámetros:
+  Funcion: delete_detailproduct
+  Descripcion: Eliminación lógica de un detalle de producto con validaciones.
+  Parametros:
     - p_iddetailproduct: ID del detalle a eliminar (debe existir y estar activo).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -2993,13 +2984,13 @@ BEGIN
     INNER JOIN Product p ON dp.IdProduct = p.IdProduct
     WHERE dp.IdDetailProduct = p_iddetailproduct;
 
-    -- Validación: No permitir eliminar si es el único detalle activo del producto
+    -- Validación: No permitir eliminar si es el unico detalle activo del producto
     SELECT COUNT(*) INTO v_active_detail_count
     FROM DetailProduct
     WHERE IdProduct = v_idproduct AND Active = true;
     
     IF v_active_detail_count <= 1 THEN
-        RETURN 'Error: No se puede eliminar el único detalle activo del producto "' || 
+        RETURN 'Error: No se puede eliminar el unico detalle activo del producto "' || 
                v_product_name || '". Cree un nuevo detalle primero.';
     END IF;
     
@@ -3022,9 +3013,9 @@ $$;
 
 
 /*
-  Función: restore_detailproduct
-  Descripción: Restaura un detalle de producto eliminado lógicamente.
-  Parámetros:
+  Funcion: restore_detailproduct
+  Descripcion: Restaura un detalle de producto eliminado lógicamente.
+  Parametros:
     - p_iddetailproduct: ID del detalle a restaurar (debe existir y estar inactivo).
   Retorna:
     - VARCHAR(100): mensaje de éxito o error.
@@ -3112,6 +3103,612 @@ $$;
 
 
 
+---------------------------------------------------- PRODUCTS DETALS ----------------------------------------------------
+/*
+  Funcion: create_paymentforms
+  Descripcion: Inserta una nueva forma de pago aplicando validaciones de negocio.
+  Parametros:
+    - p_code: Codigo unico (2-10 caracteres, no vacio).
+    - p_name: Nombre de la forma de pago (2-100 caracteres, no vacio).
+  Retorna:
+    - VARCHAR(100): mensaje de exito o error.
+*/
+CREATE OR REPLACE FUNCTION create_paymentforms(
+    p_code VARCHAR(10),
+    p_name VARCHAR(100)
+)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_idpaymentform INTEGER;
+BEGIN
+
+    IF p_code IS NULL OR TRIM(p_code) = '' OR p_name IS NULL OR TRIM(p_name) = '' THEN
+        RETURN 'Error: Código y nombre son obligatorios.';
+    END IF;
+
+    IF LENGTH(TRIM(p_code)) < 2 OR LENGTH(TRIM(p_code)) > 10 THEN
+        RETURN 'Error: El código debe tener entre 2 y 10 caracteres.';
+    END IF;
+
+    IF LENGTH(TRIM(p_name)) < 2 OR LENGTH(TRIM(p_name)) > 100 THEN
+        RETURN 'Error: El nombre debe tener entre 2 y 100 caracteres.';
+    END IF;
+
+    IF TRIM(p_code) !~ '^[A-Za-z0-9_-]+$' THEN
+        RETURN 'Error: El código solo puede contener letras, números, guiones y guiones bajos.';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM PaymentForms WHERE Code = TRIM(p_code) AND Active = true) THEN
+        RETURN 'Error: Ya existe una forma de pago activa con ese código.';
+    END IF;
+
+    -- Transaccion
+    BEGIN
+        INSERT INTO PaymentForms (
+            Code,
+            Name
+        ) VALUES (
+            TRIM(p_code),
+            LOWER(TRIM(p_name))
+        ) RETURNING IdPaymentForm INTO v_idpaymentform;
+
+        RETURN 'Forma de pago creada correctamente. ID: ' || v_idpaymentform;
+    EXCEPTION
+        WHEN unique_violation THEN
+            RETURN 'Error: Ya existe una forma de pago con ese código (violación de unicidad).';
+        WHEN OTHERS THEN
+            RETURN 'Error al crear forma de pago: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Funcion: update_paymentforms
+  Descripcion: Actualiza una forma de pago existente con validaciones.
+  Parametros:
+    - p_idpaymentform: ID de la forma de pago (debe existir y estar activa).
+    - p_code: Nuevo código (opcional, 2-10 caracteres, unico).
+    - p_name: Nuevo nombre (opcional, 2-100 caracteres).
+  Retorna:
+    - VARCHAR(100): mensaje de éxito o error.
+*/
+CREATE OR REPLACE FUNCTION update_paymentforms(
+    p_idpaymentform INTEGER,
+    p_code VARCHAR(10) DEFAULT NULL,
+    p_name VARCHAR(100) DEFAULT NULL
+)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_current_code VARCHAR(10);
+    v_current_name VARCHAR(100);
+    v_active BOOLEAN;
+BEGIN
+
+    SELECT Code, Name, Active INTO v_current_code, v_current_name, v_active
+    FROM PaymentForms WHERE IdPaymentForm = p_idpaymentform;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: Forma de pago no encontrada.';
+    END IF;
+    
+    IF NOT v_active THEN
+        RETURN 'Error: No se puede actualizar una forma de pago eliminada.';
+    END IF;
+
+    IF p_code IS NOT NULL THEN
+        IF TRIM(p_code) = '' THEN
+            RETURN 'Error: El código no puede estar vacio.';
+        END IF;
+        IF LENGTH(TRIM(p_code)) < 2 OR LENGTH(TRIM(p_code)) > 10 THEN
+            RETURN 'Error: El código debe tener entre 2 y 10 caracteres.';
+        END IF;
+        IF TRIM(p_code) !~ '^[A-Za-z0-9_-]+$' THEN
+            RETURN 'Error: El código solo puede contener letras, números, guiones y guiones bajos.';
+        END IF;
+        
+        IF TRIM(p_code) != v_current_code THEN
+            IF EXISTS (SELECT 1 FROM PaymentForms WHERE Code = TRIM(p_code) AND Active = true AND IdPaymentForm != p_idpaymentform) THEN
+                RETURN 'Error: Ya existe otra forma de pago activa con ese código.';
+            END IF;
+        END IF;
+    END IF;
+
+    IF p_name IS NOT NULL THEN
+        IF TRIM(p_name) = '' THEN
+            RETURN 'Error: El nombre no puede estar vacio.';
+        END IF;
+        IF LENGTH(TRIM(p_name)) < 2 OR LENGTH(TRIM(p_name)) > 100 THEN
+            RETURN 'Error: El nombre debe tener entre 2 y 100 caracteres.';
+        END IF;
+    END IF;
+
+    -- Transaccion 
+    BEGIN
+        UPDATE PaymentForms
+        SET
+            Code = COALESCE(TRIM(p_code), Code),
+            Name = COALESCE(TRIM(p_name), Name),
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdPaymentForm = p_idpaymentform;
+
+        RETURN 'Forma de pago actualizada correctamente.';
+    EXCEPTION
+        WHEN unique_violation THEN
+            RETURN 'Error: Ya existe otra forma de pago con ese código.';
+        WHEN OTHERS THEN
+            RETURN 'Error al actualizar forma de pago: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Funcion: delete_paymentforms
+  Descripcion: Eliminación lógica de una forma de pago.
+  Parametros:
+    - p_idpaymentform: ID de la forma de pago (debe existir y estar activa).
+  Retorna:
+    - VARCHAR(100): mensaje de éxito o error.
+*/
+CREATE OR REPLACE FUNCTION delete_paymentforms(p_idpaymentform INTEGER)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_code VARCHAR(10);
+    v_name VARCHAR(100);
+    v_active BOOLEAN;
+BEGIN
+    SELECT Code, Name, Active INTO v_code, v_name, v_active
+    FROM PaymentForms WHERE IdPaymentForm = p_idpaymentform;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: Forma de pago no encontrada.';
+    END IF;
+    
+    IF NOT v_active THEN
+        RETURN 'Error: La forma de pago ya está eliminada.';
+    END IF;
+
+    -- Transaccion 
+    BEGIN
+        UPDATE PaymentForms
+        SET 
+            Active = false,
+            DateDelete = CURRENT_TIMESTAMP,
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdPaymentForm = p_idpaymentform;
+
+        RETURN 'Forma de pago "' || v_name || '" (Código: ' || v_code || ') eliminada correctamente.';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN 'Error al eliminar forma de pago: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Funcion: restore_paymentforms
+  Descripcion: Restaura una forma de pago eliminada lógicamente.
+  Parametros:
+    - p_idpaymentform: ID de la forma de pago (debe existir y estar inactiva).
+  Retorna:
+    - VARCHAR(100): mensaje de éxito o error.
+*/
+CREATE OR REPLACE FUNCTION restore_paymentforms(p_idpaymentform INTEGER)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_code VARCHAR(10);
+    v_name VARCHAR(100);
+    v_active BOOLEAN;
+BEGIN
+    SELECT Code, Name, Active INTO v_code, v_name, v_active
+    FROM PaymentForms WHERE IdPaymentForm = p_idpaymentform;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: Forma de pago no encontrada.';
+    END IF;
+    
+    IF v_active THEN
+        RETURN 'Error: La forma de pago ya está activa.';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM PaymentForms WHERE Code = v_code AND Active = true AND IdPaymentForm != p_idpaymentform) THEN
+        RETURN 'Error: Ya existe otra forma de pago activa con el mismo código. No se puede restaurar.';
+    END IF;
+
+    -- Transaccion 
+    BEGIN
+        UPDATE PaymentForms
+        SET 
+            Active = true,
+            DateDelete = NULL,
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdPaymentForm = p_idpaymentform;
+
+        RETURN 'Forma de pago "' || v_name || '" (Código: ' || v_code || ') restaurada correctamente.';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN 'Error al restaurar forma de pago: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+
+
+
+---------------------------------------------------- CRUD SUB CATEGORY ----------------------------------------------------
+/*
+  Funcion: create_customers
+  Descripcion: Inserta un nuevo cliente aplicando validaciones de negocio.
+  Parametros:
+    - p_identification: Identificacion unica (no nulo, longitud minima 3).
+    - p_names: Nombres del cliente (no nulo, longitud minima 2).
+    - p_address: Direccion (no nulo, no vacio).
+    - p_email: Email unico y valido (no nulo).
+    - p_phone: Telefono unico (no nulo, formato basico).
+    - p_tributeid: ID de regimen tributario (opcional, por defecto 21).
+    - p_identificationdocumentid: ID de tipo de documento (opcional, por defecto 3).
+    - p_municipalityid: ID de municipio (opcional).
+  Retorna:
+    - VARCHAR(100): mensaje de exito o error.
+*/
+CREATE OR REPLACE FUNCTION create_customers(
+    p_identification VARCHAR(50),
+    p_names VARCHAR(100),
+    p_address TEXT,
+    p_email VARCHAR(100),
+    p_phone VARCHAR(50),
+    p_tributeid INT DEFAULT 21,
+    p_identificationdocumentid INT DEFAULT 3,
+    p_municipalityid INT DEFAULT NULL
+)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_idcustomer BIGINT;
+BEGIN
+    IF p_identification IS NULL OR TRIM(p_identification) = '' THEN
+        RETURN 'Error: La identificacion es obligatoria.';
+    END IF;
+    IF p_names IS NULL OR TRIM(p_names) = '' THEN
+        RETURN 'Error: Los nombres son obligatorios.';
+    END IF;
+    IF p_address IS NULL OR TRIM(p_address) = '' THEN
+        RETURN 'Error: La direccion es obligatoria.';
+    END IF;
+    IF p_email IS NULL OR TRIM(p_email) = '' THEN
+        RETURN 'Error: El email es obligatorio.';
+    END IF;
+    IF p_phone IS NULL OR TRIM(p_phone) = '' THEN
+        RETURN 'Error: El telefono es obligatorio.';
+    END IF;
+
+    IF LENGTH(TRIM(p_identification)) < 3 THEN
+        RETURN 'Error: La identificacion debe tener al menos 3 caracteres.';
+    END IF;
+
+    IF LENGTH(TRIM(p_names)) < 2 THEN
+        RETURN 'Error: Los nombres deben tener al menos 2 caracteres.';
+    END IF;
+
+    IF TRIM(p_email) !~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' THEN
+        RETURN 'Error: Formato de email invalido.';
+    END IF;
+
+    IF TRIM(p_phone) !~ '^[0-9\s\-\+\(\)]+$' THEN
+        RETURN 'Error: Formato de telefono invalido. Use solo digitos, espacios, +, -, ().';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM Customers WHERE Identification = TRIM(p_identification) AND Active = true) THEN
+        RETURN 'Error: Ya existe un cliente activo con esa identificacion.';
+    END IF;
+    IF EXISTS (SELECT 1 FROM Customers WHERE Email = LOWER(TRIM(p_email)) AND Active = true) THEN
+        RETURN 'Error: Ya existe un cliente activo con ese email.';
+    END IF;
+    IF EXISTS (SELECT 1 FROM Customers WHERE Phone = TRIM(p_phone) AND Active = true) THEN
+        RETURN 'Error: Ya existe un cliente activo con ese telefono.';
+    END IF;
+
+
+    -- Transaccion 
+    BEGIN
+        INSERT INTO Customers (
+            Identification,
+            Names,
+            Address,
+            Email,
+            Phone,
+            TributeId,
+            IdentificationDocumentId,
+            MunicipalityId 
+        ) VALUES (
+            TRIM(p_identification),
+            TRIM(p_names),
+            LOWER(TRIM(p_address)),
+            LOWER(TRIM(p_email)),
+            TRIM(p_phone),
+            p_tributeid,
+            p_identificationdocumentid,
+            p_municipalityid 
+        ) RETURNING IdCustomer INTO v_idcustomer;
+
+        RETURN 'Cliente creado correctamente. ID: ' || v_idcustomer;
+    EXCEPTION
+        WHEN unique_violation THEN
+            RETURN 'Error: Ya existe un cliente con ese identificador, email o telefono.';
+        WHEN OTHERS THEN
+            RETURN 'Error al crear cliente: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Funcion: update_customers
+  Descripcion: Actualiza un cliente existente con validaciones.
+  Parametros:
+    - p_idcustomer: ID del cliente (debe existir y estar activo).
+    - p_identification: Nueva identificacion (opcional, unica).
+    - p_names: Nuevos nombres (opcional, no vacio).
+    - p_address: Nueva direccion (opcional, no vacio).
+    - p_email: Nuevo email (opcional, unico, formato valido).
+    - p_phone: Nuevo telefono (opcional, unico, formato valido).
+    - p_tributeid: Nuevo TributeId (opcional).
+    - p_identificationdocumentid: Nuevo IdentificationDocumentId (opcional).
+    - p_municipalityid: Nuevo MunicipalityId (opcional).
+  Retorna:
+    - VARCHAR(100): mensaje de exito o error.
+*/
+CREATE OR REPLACE FUNCTION update_customers(
+    p_idcustomer BIGINT,
+    p_identification VARCHAR(50) DEFAULT NULL,
+    p_names VARCHAR(100) DEFAULT NULL,
+    p_address TEXT DEFAULT NULL,
+    p_email VARCHAR(100) DEFAULT NULL,
+    p_phone VARCHAR(50) DEFAULT NULL,
+    p_tributeid INT DEFAULT NULL,
+    p_identificationdocumentid INT DEFAULT NULL,
+    p_municipalityid INT DEFAULT NULL
+)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_current_identification VARCHAR(50);
+    v_current_email VARCHAR(100);
+    v_current_phone VARCHAR(50);
+    v_active BOOLEAN;
+BEGIN
+
+    SELECT Identification, Email, Phone, Active INTO v_current_identification, v_current_email, v_current_phone, v_active
+    FROM Customers WHERE IdCustomer = p_idcustomer;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: Cliente no encontrado.';
+    END IF;
+    
+    IF NOT v_active THEN
+        RETURN 'Error: No se puede actualizar un cliente eliminado.';
+    END IF;
+
+    IF p_identification IS NOT NULL THEN
+        IF TRIM(p_identification) = '' THEN
+            RETURN 'Error: La identificacion no puede estar vacia.';
+        END IF;
+        
+        IF LENGTH(TRIM(p_identification)) < 3 THEN
+            RETURN 'Error: La identificacion debe tener al menos 3 caracteres.';
+        END IF;
+
+        -- Verificar unicidad excluyendo el actual
+        IF TRIM(p_identification) != v_current_identification THEN
+            IF EXISTS (SELECT 1 FROM Customers WHERE Identification = TRIM(p_identification) AND Active = true AND IdCustomer != p_idcustomer) THEN
+                RETURN 'Error: Ya existe otro cliente activo con esa identificacion.';
+            END IF;
+        END IF;
+    END IF;
+
+    IF p_names IS NOT NULL THEN
+        IF TRIM(p_names) = '' THEN
+            RETURN 'Error: Los nombres no pueden estar vacios.';
+        END IF;
+        IF LENGTH(TRIM(p_names)) < 2 THEN
+            RETURN 'Error: Los nombres deben tener al menos 2 caracteres.';
+        END IF;
+    END IF;
+
+    IF p_address IS NOT NULL AND TRIM(p_address) = '' THEN
+        RETURN 'Error: La direccion no puede estar vacia.';
+    END IF;
+
+    IF p_email IS NOT NULL THEN
+        IF TRIM(p_email) = '' THEN
+            RETURN 'Error: El email no puede estar vacio.';
+        END IF;
+        
+        IF TRIM(p_email) !~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' THEN
+            RETURN 'Error: Formato de email invalido.';
+        END IF;
+        
+        -- Verificar unicidad excluyendo el actual
+        IF LOWER(TRIM(p_email)) != v_current_email THEN
+            IF EXISTS (SELECT 1 FROM Customers WHERE Email = LOWER(TRIM(p_email)) AND Active = true AND IdCustomer != p_idcustomer) THEN
+                RETURN 'Error: Ya existe otro cliente activo con ese email.';
+            END IF;
+        END IF;
+    END IF;
+
+    -- 6. Validar telefono si se proporciona
+    IF p_phone IS NOT NULL THEN
+        IF TRIM(p_phone) = '' THEN
+            RETURN 'Error: El telefono no puede estar vacio.';
+        END IF;
+        
+        IF TRIM(p_phone) !~ '^[0-9\s\-\+\(\)]+$' THEN
+            RETURN 'Error: Formato de telefono invalido. Use solo digitos, espacios, +, -, ().';
+        END IF;
+        
+        -- Verificar unicidad excluyendo el actual
+        IF TRIM(p_phone) != v_current_phone THEN
+            IF EXISTS (SELECT 1 FROM Customers WHERE Phone = TRIM(p_phone) AND Active = true AND IdCustomer != p_idcustomer) THEN
+                RETURN 'Error: Ya existe otro cliente activo con ese telefono.';
+            END IF;
+        END IF;
+    END IF;
+
+    -- Transaccion 
+    BEGIN
+        UPDATE Customers
+        SET
+            Identification = COALESCE(TRIM(p_identification), Identification),
+            Names = COALESCE(TRIM(p_names), Names),
+            Address = COALESCE(TRIM(p_address), Address),
+            Email = COALESCE(LOWER(TRIM(p_email)), Email),
+            Phone = COALESCE(TRIM(p_phone), Phone),
+            TributeId = COALESCE(p_tributeid, TributeId),
+            IdentificationDocumentId = COALESCE(p_identificationdocumentid, IdentificationDocumentId),
+            MunicipalityId = COALESCE(p_municipalityid, MunicipalityId),
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdCustomer = p_idcustomer;
+
+        RETURN 'Cliente actualizado correctamente.';
+    EXCEPTION
+        WHEN unique_violation THEN
+            RETURN 'Error: Violacion de unicidad (identificacion, email o telefono duplicados).';
+        WHEN OTHERS THEN
+            RETURN 'Error al actualizar cliente: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Funcion: delete_customers
+  Descripcion: Eliminacion logica de un cliente con validacion de dependencias.
+  Parametros:
+    - p_idcustomer: ID del cliente a eliminar (debe existir y estar activo).
+  Retorna:
+    - VARCHAR(100): mensaje de exito o error.
+*/
+CREATE OR REPLACE FUNCTION delete_customers(p_idcustomer BIGINT)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_names VARCHAR(100);
+    v_active BOOLEAN;
+    v_sales_count INTEGER;
+BEGIN
+    SELECT Names, Active INTO v_names, v_active
+    FROM Customers WHERE IdCustomer = p_idcustomer;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: Cliente no encontrado.';
+    END IF;
+    
+    IF NOT v_active THEN
+        RETURN 'Error: El cliente ya esta eliminado.';
+    END IF;
+
+    SELECT COUNT(*) INTO v_sales_count
+    FROM Sale
+    WHERE CustomerId = p_idcustomer AND Active = true AND Status != 'cancelled';
+    
+    IF v_sales_count > 0 THEN
+        RETURN 'Error: No se puede eliminar el cliente porque tiene ' || v_sales_count || ' ventas activas asociadas.';
+    END IF;
+
+    -- Transaccion 
+    BEGIN
+        UPDATE Customers
+        SET 
+            Active = false,
+            DateDelete = CURRENT_TIMESTAMP,
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdCustomer = p_idcustomer;
+
+        RETURN 'Cliente "' || v_names || '" eliminado correctamente.';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN 'Error al eliminar cliente: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+/*
+  Funcion: restore_customers
+  Descripcion: Restaura un cliente eliminado logicamente.
+  Parametros:
+    - p_idcustomer: ID del cliente a restaurar (debe existir y estar inactivo).
+  Retorna:
+    - VARCHAR(100): mensaje de exito o error.
+*/
+CREATE OR REPLACE FUNCTION restore_customers(p_idcustomer BIGINT)
+RETURNS VARCHAR(100)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_identification VARCHAR(50);
+    v_email VARCHAR(100);
+    v_phone VARCHAR(50);
+    v_names VARCHAR(100);
+    v_active BOOLEAN;
+BEGIN
+    
+    SELECT Identification, Email, Phone, Names, Active INTO v_identification, v_email, v_phone, v_names, v_active
+    FROM Customers WHERE IdCustomer = p_idcustomer;
+    
+    IF NOT FOUND THEN
+        RETURN 'Error: Cliente no encontrado.';
+    END IF;
+    
+    IF v_active THEN
+        RETURN 'Error: El cliente ya esta activo.';
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM Customers WHERE Identification = v_identification AND Active = true AND IdCustomer != p_idcustomer) THEN
+        RETURN 'Error: Ya existe otro cliente activo con la misma identificacion. No se puede restaurar.';
+    END IF;
+    IF EXISTS (SELECT 1 FROM Customers WHERE Email = v_email AND Active = true AND IdCustomer != p_idcustomer) THEN
+        RETURN 'Error: Ya existe otro cliente activo con el mismo email. No se puede restaurar.';
+    END IF;
+    IF EXISTS (SELECT 1 FROM Customers WHERE Phone = v_phone AND Active = true AND IdCustomer != p_idcustomer) THEN
+        RETURN 'Error: Ya existe otro cliente activo con el mismo telefono. No se puede restaurar.';
+    END IF;
+
+    -- Transaccion
+    BEGIN
+        UPDATE Customers
+        SET 
+            Active = true,
+            DateDelete = NULL,
+            DateUpdate = CURRENT_TIMESTAMP
+        WHERE IdCustomer = p_idcustomer;
+
+        RETURN 'Cliente "' || v_names || '" restaurado correctamente.';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN 'Error al restaurar cliente: ' || SQLERRM;
+    END;
+END;
+$$;
+
+
+
+
+
 
 
 
@@ -3145,12 +3742,11 @@ CREATE INDEX idx_productestablishments_idproduct ON ProductEstablishments(IdProd
 CREATE INDEX idx_customers_identification ON Customers(Identification);
 CREATE INDEX idx_customers_tributeid ON Customers(TributeId);
 CREATE INDEX idx_customers_municipalityid ON Customers(MunicipalityId);
+CREATE INDEX idx_customers_email_active ON Customers(Email) WHERE Active = true;
 
 -- Indices para Sale
 CREATE INDEX idx_sale_establishmentid ON Sale(EstablishmentId);
 CREATE INDEX idx_sale_customerid ON Sale(CustomerId);
-CREATE INDEX idx_sale_paymentformid ON Sale(PaymentFormId);
-CREATE INDEX idx_sale_paymentmethodid ON Sale(PaymentMethodId);
 CREATE INDEX idx_sale_referencecode ON Sale(ReferenceCode);
 CREATE INDEX idx_sale_status ON Sale(Status);
 
@@ -3158,3 +3754,44 @@ CREATE INDEX idx_sale_status ON Sale(Status);
 CREATE INDEX idx_saledetails_saleid ON SaleDetails(SaleId);
 CREATE INDEX idx_saledetails_productid ON SaleDetails(ProductId);
 CREATE INDEX idx_saledetails_tributeid ON SaleDetails(TributeId);
+
+
+
+
+
+
+
+
+
+--------------------------------------------- INSERTS --------------------------------------------- 
+SELECT create_establishments(
+    'Establecimiento General',
+    'Direccion Principal, Centro Administrativo',
+    '+505 8888-8888',
+    'general@gmail.com',
+    1
+) AS message;
+
+SELECT ProcInsertRol(
+    'Admin',
+    'Rol con acceso total al sistema, gestion de usuarios, configuraciones y reportes.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Vendedor',
+    'Rol encargado de gestionar ventas, clientes y consultas comerciales.',
+    1
+);
+
+SELECT create_users(
+    'Administrador General',
+    'admin@gmail.com',
+    'Admin.2026',
+    1,
+    1
+);
+
+-- Asi esta en la API
+INSERT INTO paymentforms(code, name)
+VALUES('1','Pago de contado');

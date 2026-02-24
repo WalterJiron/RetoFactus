@@ -107,6 +107,7 @@ CREATE TABLE ProductEstablishments (
     Active BOOLEAN DEFAULT TRUE 
 );
 
+--- API Factus
 CREATE TABLE PaymentForms (
     IdPaymentForm SERIAL PRIMARY KEY NOT NULL,
     Code VARCHAR(10) NOT NULL UNIQUE,
@@ -117,25 +118,26 @@ CREATE TABLE PaymentForms (
     DateDelete TIMESTAMPTZ
 );
 
-CREATE TABLE PaymentMethods (
-    IdPaymentMethod SERIAL PRIMARY KEY NOT NULL,
-    Code VARCHAR(10) NOT NULL UNIQUE,
-    Name VARCHAR(100) NOT NULL,
-    Active BOOLEAN DEFAULT TRUE,
-    DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    DateUpdate TIMESTAMPTZ,
-    DateDelete TIMESTAMPTZ
-);
+
+-- --- Estándaa
+-- CREATE TABLE PaymentMethods (
+--     IdPaymentMethod SERIAL PRIMARY KEY NOT NULL,
+--     Code VARCHAR(10) NOT NULL UNIQUE,
+--     Name VARCHAR(100) NOT NULL,
+--     Active BOOLEAN DEFAULT TRUE,
+--     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+--     DateUpdate TIMESTAMPTZ,
+--     DateDelete TIMESTAMPTZ
+-- );
 
 CREATE TABLE Customers (
     IdCustomer BIGSERIAL PRIMARY KEY NOT NULL,
     Identification VARCHAR(50) NOT NULL UNIQUE,
-    Names VARCHAR(255) NOT NULL,
-    Address TEXT,
-    Email VARCHAR(255),
-    Phone VARCHAR(50),
-    LegalOrganizationId INT,  -- ID de API Factus (tipo de organización)
-    TributeId INT,            -- ID de API Factus (régimen de tributación)
+    Names VARCHAR(100) NOT NULL,
+    Address TEXT NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Phone VARCHAR(50) UNIQUE NOT NULL,
+    TributeId INT,            -- ID de API Factus (regimen de tributación)
     IdentificationDocumentId INT, -- ID de API Factus (tipo de documento)
     MunicipalityId INT,       -- ID de API Factus (municipio)
     
@@ -160,11 +162,11 @@ CREATE SEQUENCE secuencia_venta START 1;
 
 CREATE TABLE Sale (
     IdInternal BIGINT PRIMARY KEY DEFAULT nextval('secuencia_venta'),
-    ReferenceCode VARCHAR(20) UNIQUE DEFAULT 'VENTA-' || LPAD(nextval('secuencia_venta')::TEXT, 7, '0'),  -- Código público
+    ReferenceCode VARCHAR(20) UNIQUE DEFAULT 'VENTA-' || LPAD(nextval('secuencia_venta')::TEXT, 7, '0'),  -- Codigo publico
     EstablishmentId INT NOT NULL REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE,
     CustomerId BIGINT NOT NULL REFERENCES Customers(IdCustomer) ON DELETE RESTRICT ON UPDATE CASCADE,
     PaymentFormId INT NOT NULL REFERENCES PaymentForms(IdPaymentForm) ON DELETE RESTRICT ON UPDATE CASCADE,
-    PaymentMethodId INT NOT NULL REFERENCES PaymentMethods(IdPaymentMethod) ON DELETE RESTRICT ON UPDATE CASCADE,
+    -- PaymentMethodId INT NOT NULL REFERENCES PaymentMethods(IdPaymentMethod) ON DELETE RESTRICT ON UPDATE CASCADE,
    
     SaleDate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     Subtotal DECIMAL(15,2) NOT NULL,
@@ -187,7 +189,7 @@ CREATE TABLE SaleDetails (
     Subtotal DECIMAL(15,2) NOT NULL,  -- (Quantity * UnitPrice) * (1 - DiscountRate/100)
     TaxRate DECIMAL(5,2) NOT NULL,  -- Porcentaje de impuesto aplicado
     TributeId INT REFERENCES Tributes(IdTribute) ON DELETE RESTRICT ON UPDATE CASCADE,  -- Tipo de impuesto (opcional)
-    IsExcluded BOOLEAN DEFAULT FALSE,  -- Indica si está excluido de impuestos
+    IsExcluded BOOLEAN DEFAULT FALSE,  -- Indica si esta excluido de impuestos
     UnitMeasureId INT NOT NULL,  -- ID de unidad de medida (API Factus)
     
     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -208,41 +210,41 @@ CREATE TABLE Receipt(
 
 CREATE INDEX idx_establishments_municipality ON Establishments(Municipality_Id);
 
--- Índices para Roles
+-- Indices para Roles
 CREATE INDEX idx_roles_idestablishment ON Roles(IdEstablishment);
 
--- Índices para Users
+-- Indices para Users
 CREATE INDEX idx_users_roleuser ON Users(RoleUser);
 CREATE INDEX idx_users_idestablishment ON Users(IdEstablishment);
 CREATE INDEX idx_users_email ON Users(Email);
 
--- Índices para SubCategory
+-- Indices para SubCategory
 CREATE INDEX idx_subcategory_categorysub ON SubCategory(CategorySub);
 
--- Índices para Product
+-- Indices para Product
 CREATE INDEX idx_product_idsubcategory ON Product(IdSubCategory);
 CREATE INDEX idx_product_code_reference ON Product(code_reference);
 
--- Índices para DetailProduct
+-- Indices para DetailProduct
 CREATE INDEX idx_detailproduct_idproduct ON DetailProduct(IdProduct);
 
--- Índices para ProductEstablishments
+-- Indices para ProductEstablishments
 CREATE INDEX idx_productestablishments_idproduct ON ProductEstablishments(IdProduct);
 
--- Índices para Customers
+-- Indices para Customers
 CREATE INDEX idx_customers_identification ON Customers(Identification);
 CREATE INDEX idx_customers_tributeid ON Customers(TributeId);
 CREATE INDEX idx_customers_municipalityid ON Customers(MunicipalityId);
+CREATE INDEX idx_customers_email_active ON Customers(Email) WHERE Active = true;
 
--- Índices para Sale
+-- Indices para Sale
 CREATE INDEX idx_sale_establishmentid ON Sale(EstablishmentId);
 CREATE INDEX idx_sale_customerid ON Sale(CustomerId);
-CREATE INDEX idx_sale_paymentformid ON Sale(PaymentFormId);
-CREATE INDEX idx_sale_paymentmethodid ON Sale(PaymentMethodId);
 CREATE INDEX idx_sale_referencecode ON Sale(ReferenceCode);
 CREATE INDEX idx_sale_status ON Sale(Status);
 
--- Índices para SaleDetails
+
+-- Indices para SaleDetails
 CREATE INDEX idx_saledetails_saleid ON SaleDetails(SaleId);
 CREATE INDEX idx_saledetails_productid ON SaleDetails(ProductId);
 CREATE INDEX idx_saledetails_tributeid ON SaleDetails(TributeId);
