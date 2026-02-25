@@ -61,7 +61,7 @@ export default async (req: any, res: any) => {
                     title: 'Documentación API Reto Factus',
                     description: 'Referencia técnica completa para desarrolladores',
                 },
-            }),
+            } as any),
         );
 
         app.use('/', (req: any, res: any, next: any) => {
