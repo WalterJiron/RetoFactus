@@ -17,16 +17,6 @@ export class IsSalePriceGreaterOrEqualConstraint implements ValidatorConstraintI
 
 export class CreateProductDetailsDto {
     @ApiProperty({
-        description: 'ID del producto (debe existir y estar activo)',
-        example: 15,
-        minimum: 1,
-    })
-    // @IsInt({ message: 'El ID del producto debe ser un número entero' })
-    // @IsNotEmpty({ message: 'El ID del producto es obligatorio' })
-    // @Min(1, { message: 'El ID del producto debe ser mayor o igual a 1' })
-    // idProduct?: number;
-
-    @ApiProperty({
         description: 'Stock mínimo (>= 0)',
         example: 10,
         minimum: 0,
