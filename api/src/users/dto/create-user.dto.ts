@@ -56,14 +56,4 @@ export class CreateUserDto {
     @IsNotEmpty({ message: 'El rol es obligatorio' })
     @Min(1, { message: 'El ID del rol debe ser mayor o igual a 1' })
     roleUser!: number;
-
-    @ApiProperty({
-        description: 'ID del establecimiento (debe existir y estar activo)',
-        example: 3,
-        minimum: 1
-    })
-    @IsInt({ message: 'El establecimiento debe ser un número entero' })
-    @IsNotEmpty({ message: 'El establecimiento es obligatorio' })
-    @Min(1, { message: 'El ID del establecimiento debe ser mayor o igual a 1' })
-    idEstablishment!: number;
 }
