@@ -65,7 +65,9 @@ export default async (req: any, res: any) => {
                 layout: 'modern',
                 darkMode: true,
                 hideDownloadButton: true,
-                metaData: {
+                // Carga de vista
+        cdn: 'https://cdn.jsdelivr.net/npm/@scalar/api-reference',
+metaData: {
                     title: 'Documentación API Reto Factus',
                     description: 'Referencia técnica completa para desarrolladores',
                 },
