@@ -4,6 +4,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { apiReference } from '@scalar/nestjs-api-reference';
 
 const server = express();
 let cachedApp: any;
@@ -17,13 +18,10 @@ export default async (req: any, res: any) => {
 
         const config = new DocumentBuilder()
             .setTitle('Reto Factus - API')
-            .setDescription('Documentación de la API para un mejor entendimiento de la misma')
-            .setVersion('1.0.0')
-            .setContact(
-                'Soporte Técnico',
-                'https://github.com/walterjiron',
-                'soporte@ejemplo.com',
+            .setDescription(
+                'Documentación de la API para un mejor entendimiento de la misma'
             )
+            .setVersion('1.0.0')
             .addTag('Auth', 'Operaciones de autenticación y gestión de acceso')
             .addTag('Establishments', 'Gestión de establecimientos comerciales')
             .addTag('Roles', 'Administración de roles y permisos del sistema')
@@ -43,19 +41,49 @@ export default async (req: any, res: any) => {
                     description: 'Ingrese su token JWT',
                     in: 'header',
                 },
-                'JWT-auth',
+                'JWT-auth', // Referencia interna para usar en @ApiBearerAuth()
             )
             .build();
 
         const document = SwaggerModule.createDocument(app, config);
 
-        // Usamos SwaggerModule para Vercel ya que es más estable en serverless
-        SwaggerModule.setup('/', app, document, {
-            customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
-            customJs: [
-                'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js',
-            ],
+        // SwaggerModule.setup('/', app, document, {
+        //     customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
+        //     customJs: [
+        //         'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js',
+        //         'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js',
+        //     ],
+        // });
+
+        app.use(
+            '/docs',
+            apiReference({
+                spec: {
+                    content: document,
+                },
+                theme: 'purple',
+                layout: 'modern',
+                darkMode: true,
+                hideDownloadButton: true,
+                metaData: {
+                    title: 'Documentación API Reto Factus',
+                    description: 'Referencia técnica completa para desarrolladores',
+                },
+            }),
+        );
+
+        app.use('/', (req: any, res: any, next: any) => {
+            if (req.url === '/') {
+                res.send(`
+                    <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif; background-color: #0f172a; color: white; text-align: center;">
+                      <h1 style="margin-bottom: 10px;">API Reto Factus</h1>
+                      <p style="color: #94a3b8; margin-bottom: 25px;">El servicio se encuentra activo y listo para recibir peticiones.</p>
+                      <a href="/docs" style="background-color: #6366f1; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">Explorar Documentación</a>
+                    </div>
+                `);
+            } else {
+                next();
+            }
         });
 
         app.useGlobalPipes(new ValidationPipe({

@@ -14,11 +14,6 @@ async function bootstrap() {
       'Documentación de la API para un mejor entendimiento de la misma'
     )
     .setVersion('1.0.0')
-    .setContact(
-      'Soporte Técnico',
-      'https://github.com/walterjiron',
-      'soporte@ejemplo.com',
-    )
     .addTag('Auth', 'Operaciones de autenticación y gestión de acceso')
     .addTag('Establishments', 'Gestión de establecimientos comerciales')
     .addTag('Roles', 'Administración de roles y permisos del sistema')
