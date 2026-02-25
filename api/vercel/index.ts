@@ -45,19 +45,32 @@ export default async (req: any, res: any) => {
         const document = SwaggerModule.createDocument(app, config);
 
         app.use('/docs', (req: any, res: any) => {
+            const specBase64 = Buffer.from(JSON.stringify(document)).toString('base64');
+            const configuration = JSON.stringify({
+                theme: 'purple',
+                layout: 'modern',
+                darkMode: true,
+                hideDownloadButton: true,
+                metaData: {
+                    title: 'Documentación API Reto Factus',
+                    description: 'Referencia técnica completa para desarrolladores',
+                },
+            });
             res.send(`
                 <!doctype html>
                 <html>
                   <head>
-                    <title>API Reference | Reto Factus</title>
+                    <title>Documentación API Reto Factus</title>
                     <meta charset="utf-8" />
                     <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <meta name="description" content="Referencia técnica completa para desarrolladores" />
                     <style> body { margin: 0; } </style>
                   </head>
                   <body>
                     <script
                       id="api-reference"
-                      data-url="data:application/json;base64,${Buffer.from(JSON.stringify(document)).toString('base64')}"
+                      data-url="data:application/json;base64,${specBase64}"
+                      data-configuration='${configuration}'
                     ></script>
                     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
                   </body>
