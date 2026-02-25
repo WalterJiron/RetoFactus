@@ -44,8 +44,12 @@ export default async (req: any, res: any) => {
 
         const document = SwaggerModule.createDocument(app, config);
 
+        app.use('/api-json', (req: any, res: any) => {
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(document));
+        });
+
         app.use('/docs', (req: any, res: any) => {
-            const specBase64 = Buffer.from(JSON.stringify(document)).toString('base64');
             const configuration = JSON.stringify({
                 theme: 'purple',
                 layout: 'modern',
@@ -69,7 +73,7 @@ export default async (req: any, res: any) => {
                   <body>
                     <script
                       id="api-reference"
-                      data-url="data:application/json;base64,${specBase64}"
+                      data-url="/api-json"
                       data-configuration='${configuration}'
                     ></script>
                     <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
