@@ -42,13 +42,12 @@ async function bootstrap() {
   app.use(
     '/docs',
     apiReference({
-      spec: {
-        content: document,
-      },
+      content: document,
       theme: 'purple',
       layout: 'modern',
       darkMode: true,
       hideDownloadButton: true,
+      cdn: 'https://cdn.jsdelivr.net/npm/@scalar/api-reference',
       metaData: {
         title: 'Documentación API Reto Factus',
         description: 'Referencia técnica completa para desarrolladores',

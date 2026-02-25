@@ -119,7 +119,7 @@ CREATE TABLE PaymentForms (
 );
 
 
--- --- Estándaa
+-- Viene de la API de Factus
 -- CREATE TABLE PaymentMethods (
 --     IdPaymentMethod SERIAL PRIMARY KEY NOT NULL,
 --     Code VARCHAR(10) NOT NULL UNIQUE,
@@ -148,15 +148,16 @@ CREATE TABLE Customers (
     Active BOOLEAN DEFAULT TRUE
 );
 
-CREATE TABLE Tributes (
-    IdTribute SERIAL PRIMARY KEY NOT NULL,
-    Code VARCHAR(10) NOT NULL UNIQUE,
-    Name VARCHAR(100) NOT NULL,
-    Active BOOLEAN DEFAULT TRUE,
-    DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    DateUpdate TIMESTAMPTZ,
-    DateDelete TIMESTAMPTZ
-);
+--- Viene de la API de Factus
+-- CREATE TABLE Tributes (
+--     IdTribute SERIAL PRIMARY KEY NOT NULL,
+--     Code VARCHAR(10) NOT NULL UNIQUE,
+--     Name VARCHAR(100) NOT NULL,
+--     Active BOOLEAN DEFAULT TRUE,
+--     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+--     DateUpdate TIMESTAMPTZ,
+--     DateDelete TIMESTAMPTZ
+-- );
 
 CREATE SEQUENCE secuencia_venta START 1;
 
@@ -166,7 +167,7 @@ CREATE TABLE Sale (
     EstablishmentId INT NOT NULL REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE,
     CustomerId BIGINT NOT NULL REFERENCES Customers(IdCustomer) ON DELETE RESTRICT ON UPDATE CASCADE,
     PaymentFormId INT NOT NULL REFERENCES PaymentForms(IdPaymentForm) ON DELETE RESTRICT ON UPDATE CASCADE,
-    -- PaymentMethodId INT NOT NULL REFERENCES PaymentMethods(IdPaymentMethod) ON DELETE RESTRICT ON UPDATE CASCADE,
+    PaymentMethodId INT NOT NULL REFERENCES PaymentMethods(IdPaymentMethod) ON DELETE RESTRICT ON UPDATE CASCADE,
    
     SaleDate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     Subtotal DECIMAL(15,2) NOT NULL,
@@ -188,7 +189,7 @@ CREATE TABLE SaleDetails (
     DiscountRate DECIMAL(5,2) DEFAULT 0,  -- Tasa de descuento aplicada al producto 
     Subtotal DECIMAL(15,2) NOT NULL,  -- (Quantity * UnitPrice) * (1 - DiscountRate/100)
     TaxRate DECIMAL(5,2) NOT NULL,  -- Porcentaje de impuesto aplicado
-    TributeId INT REFERENCES Tributes(IdTribute) ON DELETE RESTRICT ON UPDATE CASCADE,  -- Tipo de impuesto (opcional)
+    TributeId INT,  -- Tipo de impuesto (opcional) API
     IsExcluded BOOLEAN DEFAULT FALSE,  -- Indica si esta excluido de impuestos
     UnitMeasureId INT NOT NULL,  -- ID de unidad de medida (API Factus)
     

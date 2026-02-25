@@ -47,27 +47,17 @@ export default async (req: any, res: any) => {
 
         const document = SwaggerModule.createDocument(app, config);
 
-        // SwaggerModule.setup('/', app, document, {
-        //     customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
-        //     customJs: [
-        //         'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js',
-        //         'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js',
-        //     ],
-        // });
 
         app.use(
             '/docs',
             apiReference({
-                spec: {
-                    content: document,
-                },
+                content: document,
                 theme: 'purple',
                 layout: 'modern',
                 darkMode: true,
                 hideDownloadButton: true,
-                // Carga de vista
-        cdn: 'https://cdn.jsdelivr.net/npm/@scalar/api-reference',
-metaData: {
+                cdn: 'https://cdn.jsdelivr.net/npm/@scalar/api-reference',
+                metaData: {
                     title: 'Documentación API Reto Factus',
                     description: 'Referencia técnica completa para desarrolladores',
                 },
