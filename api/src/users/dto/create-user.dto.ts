@@ -12,7 +12,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
     @ApiProperty({
-        description: 'Nombre del usuario (2-50 caracteres, solo letras y espacios)',
+        description: 'Nombre del usuario (2-50 caracteres, solo letras, números y espacios)',
         example: 'Juan Pérez',
         minLength: 2,
         maxLength: 50
@@ -21,7 +21,7 @@ export class CreateUserDto {
     @IsString({ message: 'El nombre debe ser una cadena de texto' })
     @IsNotEmpty({ message: 'El nombre es obligatorio' })
     @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres' })
-    @Matches(/^[a-zA-ZáéíóúüÑñ0-9\s]+$/, {
+    @Matches(/^[a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ\s]+$/, {
         message: 'El nombre solo puede contener letras, números y espacios'
     })
     nameUser!: string;
@@ -55,7 +55,15 @@ export class CreateUserDto {
     @IsInt({ message: 'El rol debe ser un número entero' })
     @IsNotEmpty({ message: 'El rol es obligatorio' })
     @Min(1, { message: 'El ID del rol debe ser mayor o igual a 1' })
-    role!: number;
+    roleUser!: number;
+
+    @ApiProperty({
+        description: 'ID del establecimiento (debe existir y estar activo)',
+        example: 3,
+        minimum: 1
+    })
+    @IsInt({ message: 'El establecimiento debe ser un número entero' })
+    @IsNotEmpty({ message: 'El establecimiento es obligatorio' })
+    @Min(1, { message: 'El ID del establecimiento debe ser mayor o igual a 1' })
+    idEstablishment!: number;
 }
-
-
