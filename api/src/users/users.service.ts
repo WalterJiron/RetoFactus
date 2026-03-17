@@ -11,7 +11,7 @@ import { Role } from '../auth/enums/role.enum';
 export class UsersService {
   constructor(private readonly db: DataSource) { }
 
-  async create(estId: number, { nameUser, email, password, role }: CreateUserDto) {
+  async create(estId: number, { nameUser, email, password, roleUser }: CreateUserDto) {
     const result = await this.db.query(
       `
         SELECT create_users($1, $2, $3, $4, $5) AS message
@@ -20,7 +20,7 @@ export class UsersService {
         nameUser,
         email,
         password,
-        role,
+        roleUser,
         estId,
       ]
     );
@@ -81,7 +81,7 @@ export class UsersService {
     return user;
   }
 
-  async update(id: number, { nameUser, email, password, role }: UpdateUserDto, estId: number) {
+  async update(id: number, { nameUser, email, password, roleUser }: UpdateUserDto, estId: number) {
     const result = await this.db.query(
       `
         SELECT update_users($1, $2, $3, $4, $5, $6) AS message;
@@ -89,7 +89,7 @@ export class UsersService {
       [
         id, nameUser,
         email, password,
-        role, estId,
+        roleUser, estId,
       ]
     );
 
