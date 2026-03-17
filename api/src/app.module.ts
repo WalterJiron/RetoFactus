@@ -14,7 +14,6 @@ import { PaymentFormsModule } from './payment_forms/payment_forms.module';
 import { FactusModule } from './factus/factus.module';
 import { CustomersModule } from './customers/customers.module';
 import { SalesModule } from './sales/sales.module';
-import { FacturasModule } from './facturas/facturas.module';
 
 @Module({
   imports: [
@@ -46,9 +45,7 @@ import { FacturasModule } from './facturas/facturas.module';
 
     SalesModule,
 
-    FactusModule,
-
-    FacturasModule,
+    FactusModule
   ],
   controllers: [],
   providers: [],
