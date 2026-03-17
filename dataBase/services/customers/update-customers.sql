@@ -11,6 +11,7 @@
     - p_tributeid: Nuevo TributeId (opcional).
     - p_identificationdocumentid: Nuevo IdentificationDocumentId (opcional).
     - p_municipalityid: Nuevo MunicipalityId (opcional).
+    - p_idestablishment: Nuevo ID de establecimiento (opcional, debe existir y estar activo).
   Retorna:
     - VARCHAR(100): mensaje de exito o error.
 */
@@ -23,7 +24,8 @@ CREATE OR REPLACE FUNCTION update_customers(
     p_phone VARCHAR(50) DEFAULT NULL,
     p_tributeid INT DEFAULT NULL,
     p_identificationdocumentid INT DEFAULT NULL,
-    p_municipalityid INT DEFAULT NULL
+    p_municipalityid INT DEFAULT NULL,
+    p_idestablishment INT DEFAULT NULL
 )
 RETURNS VARCHAR(100)
 LANGUAGE plpgsql
@@ -33,9 +35,10 @@ DECLARE
     v_current_email VARCHAR(100);
     v_current_phone VARCHAR(50);
     v_active BOOLEAN;
+    v_establishment_active BOOLEAN;
 BEGIN
-
-    SELECT Identification, Email, Phone, Active INTO v_current_identification, v_current_email, v_current_phone, v_active
+    SELECT Identification, Email, Phone, Active 
+    INTO v_current_identification, v_current_email, v_current_phone, v_active
     FROM Customers WHERE IdCustomer = p_idcustomer;
     
     IF NOT FOUND THEN
@@ -46,16 +49,14 @@ BEGIN
         RETURN 'Error: No se puede actualizar un cliente eliminado.';
     END IF;
 
+    -- Validar identificacion
     IF p_identification IS NOT NULL THEN
         IF TRIM(p_identification) = '' THEN
             RETURN 'Error: La identificacion no puede estar vacia.';
         END IF;
-        
         IF LENGTH(TRIM(p_identification)) < 3 THEN
             RETURN 'Error: La identificacion debe tener al menos 3 caracteres.';
         END IF;
-
-        -- Verificar unicidad excluyendo el actual
         IF TRIM(p_identification) != v_current_identification THEN
             IF EXISTS (SELECT 1 FROM Customers WHERE Identification = TRIM(p_identification) AND Active = true AND IdCustomer != p_idcustomer) THEN
                 RETURN 'Error: Ya existe otro cliente activo con esa identificacion.';
@@ -63,6 +64,7 @@ BEGIN
         END IF;
     END IF;
 
+    -- Validar nombres
     IF p_names IS NOT NULL THEN
         IF TRIM(p_names) = '' THEN
             RETURN 'Error: Los nombres no pueden estar vacios.';
@@ -72,20 +74,19 @@ BEGIN
         END IF;
     END IF;
 
+    -- Validar direccion
     IF p_address IS NOT NULL AND TRIM(p_address) = '' THEN
         RETURN 'Error: La direccion no puede estar vacia.';
     END IF;
 
+    -- Validar email
     IF p_email IS NOT NULL THEN
         IF TRIM(p_email) = '' THEN
             RETURN 'Error: El email no puede estar vacio.';
         END IF;
-        
         IF TRIM(p_email) !~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' THEN
             RETURN 'Error: Formato de email invalido.';
         END IF;
-        
-        -- Verificar unicidad excluyendo el actual
         IF LOWER(TRIM(p_email)) != v_current_email THEN
             IF EXISTS (SELECT 1 FROM Customers WHERE Email = LOWER(TRIM(p_email)) AND Active = true AND IdCustomer != p_idcustomer) THEN
                 RETURN 'Error: Ya existe otro cliente activo con ese email.';
@@ -93,17 +94,14 @@ BEGIN
         END IF;
     END IF;
 
-    -- 6. Validar telefono si se proporciona
+    -- Validar telefono
     IF p_phone IS NOT NULL THEN
         IF TRIM(p_phone) = '' THEN
             RETURN 'Error: El telefono no puede estar vacio.';
         END IF;
-        
         IF TRIM(p_phone) !~ '^[0-9\s\-\+\(\)]+$' THEN
             RETURN 'Error: Formato de telefono invalido. Use solo digitos, espacios, +, -, ().';
         END IF;
-        
-        -- Verificar unicidad excluyendo el actual
         IF TRIM(p_phone) != v_current_phone THEN
             IF EXISTS (SELECT 1 FROM Customers WHERE Phone = TRIM(p_phone) AND Active = true AND IdCustomer != p_idcustomer) THEN
                 RETURN 'Error: Ya existe otro cliente activo con ese telefono.';
@@ -111,7 +109,19 @@ BEGIN
         END IF;
     END IF;
 
-    -- Transaccion 
+    -- Validar establecimiento si se proporciona
+    IF p_idestablishment IS NOT NULL THEN
+        SELECT Active INTO v_establishment_active
+        FROM Establishments WHERE IdEstablishment = p_idestablishment;
+        IF NOT FOUND THEN
+            RETURN 'Error: El establecimiento especificado no existe.';
+        END IF;
+        IF NOT v_establishment_active THEN
+            RETURN 'Error: El establecimiento especificado esta inactivo.';
+        END IF;
+    END IF;
+
+    -- Transaccion
     BEGIN
         UPDATE Customers
         SET
@@ -123,6 +133,7 @@ BEGIN
             TributeId = COALESCE(p_tributeid, TributeId),
             IdentificationDocumentId = COALESCE(p_identificationdocumentid, IdentificationDocumentId),
             MunicipalityId = COALESCE(p_municipalityid, MunicipalityId),
+            IdEstablishment = COALESCE(p_idestablishment, IdEstablishment),
             DateUpdate = CURRENT_TIMESTAMP
         WHERE IdCustomer = p_idcustomer;
 

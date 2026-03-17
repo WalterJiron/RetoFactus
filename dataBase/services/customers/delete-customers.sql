@@ -34,7 +34,6 @@ BEGIN
         RETURN 'Error: No se puede eliminar el cliente porque tiene ' || v_sales_count || ' ventas activas asociadas.';
     END IF;
 
-    -- Transaccion 
     BEGIN
         UPDATE Customers
         SET 
@@ -43,7 +42,7 @@ BEGIN
             DateUpdate = CURRENT_TIMESTAMP
         WHERE IdCustomer = p_idcustomer;
 
-        RETURN 'Cliente "' || v_names || '" eliminado correctamente.';
+        RETURN 'Cliente (' || v_names || ') eliminado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al eliminar cliente: ' || SQLERRM;

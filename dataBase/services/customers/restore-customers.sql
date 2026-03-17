@@ -17,8 +17,8 @@ DECLARE
     v_names VARCHAR(100);
     v_active BOOLEAN;
 BEGIN
-    
-    SELECT Identification, Email, Phone, Names, Active INTO v_identification, v_email, v_phone, v_names, v_active
+    SELECT Identification, Email, Phone, Names, Active 
+    INTO v_identification, v_email, v_phone, v_names, v_active
     FROM Customers WHERE IdCustomer = p_idcustomer;
     
     IF NOT FOUND THEN
@@ -39,7 +39,6 @@ BEGIN
         RETURN 'Error: Ya existe otro cliente activo con el mismo telefono. No se puede restaurar.';
     END IF;
 
-    -- Transaccion
     BEGIN
         UPDATE Customers
         SET 
@@ -48,7 +47,7 @@ BEGIN
             DateUpdate = CURRENT_TIMESTAMP
         WHERE IdCustomer = p_idcustomer;
 
-        RETURN 'Cliente "' || v_names || '" restaurado correctamente.';
+        RETURN 'Cliente (' || v_names || ') restaurado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al restaurar cliente: ' || SQLERRM;

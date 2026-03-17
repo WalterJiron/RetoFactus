@@ -10,6 +10,7 @@
     - p_tributeid: ID de regimen tributario (opcional, por defecto 21).
     - p_identificationdocumentid: ID de tipo de documento (opcional, por defecto 3).
     - p_municipalityid: ID de municipio (opcional).
+    - p_idestablishment: ID del establecimiento (opcional, debe existir y estar activo si se proporciona).
   Retorna:
     - VARCHAR(100): mensaje de exito o error.
 */
@@ -21,14 +22,17 @@ CREATE OR REPLACE FUNCTION create_customers(
     p_phone VARCHAR(50),
     p_tributeid INT DEFAULT 21,
     p_identificationdocumentid INT DEFAULT 3,
-    p_municipalityid INT DEFAULT NULL
+    p_municipalityid INT DEFAULT NULL,
+    p_idestablishment INT DEFAULT NULL
 )
 RETURNS VARCHAR(100)
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_idcustomer BIGINT;
+    v_establishment_active BOOLEAN;
 BEGIN
+    -- Validaciones
     IF p_identification IS NULL OR TRIM(p_identification) = '' THEN
         RETURN 'Error: La identificacion es obligatoria.';
     END IF;
@@ -48,7 +52,6 @@ BEGIN
     IF LENGTH(TRIM(p_identification)) < 3 THEN
         RETURN 'Error: La identificacion debe tener al menos 3 caracteres.';
     END IF;
-
     IF LENGTH(TRIM(p_names)) < 2 THEN
         RETURN 'Error: Los nombres deben tener al menos 2 caracteres.';
     END IF;
@@ -71,8 +74,18 @@ BEGIN
         RETURN 'Error: Ya existe un cliente activo con ese telefono.';
     END IF;
 
+    IF p_idestablishment IS NOT NULL THEN
+        SELECT Active INTO v_establishment_active
+        FROM Establishments WHERE IdEstablishment = p_idestablishment;
+        IF NOT FOUND THEN
+            RETURN 'Error: El establecimiento especificado no existe.';
+        END IF;
+        IF NOT v_establishment_active THEN
+            RETURN 'Error: El establecimiento especificado esta inactivo.';
+        END IF;
+    END IF;
 
-    -- Transaccion 
+    -- Transaccion
     BEGIN
         INSERT INTO Customers (
             Identification,
@@ -82,16 +95,20 @@ BEGIN
             Phone,
             TributeId,
             IdentificationDocumentId,
-            MunicipalityId 
+            MunicipalityId,
+            IdEstablishment,
+            Active
         ) VALUES (
             TRIM(p_identification),
             TRIM(p_names),
-            LOWER(TRIM(p_address)),
+            TRIM(p_address),
             LOWER(TRIM(p_email)),
             TRIM(p_phone),
             p_tributeid,
             p_identificationdocumentid,
-            p_municipalityid 
+            p_municipalityid,
+            p_idestablishment,
+            true
         ) RETURNING IdCustomer INTO v_idcustomer;
 
         RETURN 'Cliente creado correctamente. ID: ' || v_idcustomer;
@@ -101,107 +118,5 @@ BEGIN
         WHEN OTHERS THEN
             RETURN 'Error al crear cliente: ' || SQLERRM;
     END;
-END;
-$$;
-
-
-
-
--- ====================================================
--- FUNCIONES ADICIONALES DE UTILIDAD
--- ====================================================
-
-/*
-  Funcion: get_customer_by_identification
-  Descripcion: Obtiene un cliente activo por su identificacion.
-  Parametros:
-    - p_identification: Identificacion del cliente.
-  Retorna:
-    - TABLE: datos del cliente.
-*/
-CREATE OR REPLACE FUNCTION get_customer_by_identification(p_identification VARCHAR(50))
-RETURNS TABLE (
-    idcustomer BIGINT,
-    identification VARCHAR(50),
-    names VARCHAR(100),
-    address TEXT,
-    email VARCHAR(100),
-    phone VARCHAR(50),
-    tributeid INT,
-    identificationdocumentid INT,
-    municipalityid INT,
-    datecreate TIMESTAMPTZ
-)
-LANGUAGE plpgsql
-STABLE
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        c.IdCustomer,
-        c.Identification,
-        c.Names,
-        c.Address,
-        c.Email,
-        c.Phone,
-        c.TributeId,
-        c.IdentificationDocumentId,
-        c.MunicipalityId,
-        c.DateCreate
-    FROM Customers c
-    WHERE c.Identification = TRIM(p_identification) AND c.Active = true;
-END;
-$$;
-
-/*
-  Funcion: list_customers
-  Descripcion: Lista todos los clientes con opcion de incluir inactivos.
-  Parametros:
-    - p_include_inactive: Si se incluyen inactivos (por defecto false).
-  Retorna:
-    - TABLE: lista de clientes.
-*/
-CREATE OR REPLACE FUNCTION list_customers(p_include_inactive BOOLEAN DEFAULT false)
-RETURNS TABLE (
-    idcustomer BIGINT,
-    identification VARCHAR(50),
-    names VARCHAR(100),
-    address TEXT,
-    email VARCHAR(100),
-    phone VARCHAR(50),
-    tributeid INT,
-    identificationdocumentid INT,
-    municipalityid INT,
-    active BOOLEAN,
-    datecreate TIMESTAMPTZ,
-    sales_count BIGINT
-)
-LANGUAGE plpgsql
-STABLE
-AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        c.IdCustomer,
-        c.Identification,
-        c.Names,
-        c.Address,
-        c.Email,
-        c.Phone,
-        c.TributeId,
-        c.IdentificationDocumentId,
-        c.MunicipalityId,
-        c.Active,
-        c.DateCreate,
-        COALESCE(s.sales_count, 0)::BIGINT
-    FROM Customers c
-    LEFT JOIN (
-        SELECT CustomerId, COUNT(*) as sales_count
-        FROM Sale
-        WHERE Active = true
-        GROUP BY CustomerId
-    ) s ON c.IdCustomer = s.CustomerId
-    WHERE (p_include_inactive OR c.Active = true)
-    ORDER BY c.IdCustomer DESC;
 END;
 $$;
