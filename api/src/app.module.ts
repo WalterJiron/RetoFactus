@@ -13,6 +13,8 @@ import { EstablishmentsModule } from './establishments/establishments.module';
 import { PaymentFormsModule } from './payment_forms/payment_forms.module';
 import { FactusModule } from './factus/factus.module';
 import { CustomersModule } from './customers/customers.module';
+import { SalesModule } from './sales/sales.module';
+import { SaleDetailsModule } from './sale_details/sale_details.module';
 
 @Module({
   imports: [
@@ -41,6 +43,10 @@ import { CustomersModule } from './customers/customers.module';
     PaymentFormsModule,
 
     CustomersModule,
+
+    SalesModule,
+
+    SaleDetailsModule,
 
     FactusModule,
   ],

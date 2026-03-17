@@ -29,7 +29,7 @@ export class CreateCustomerDto {
         description: 'Dirección del cliente (no vacía)',
         example: 'Calle 123 #45-67, Barrio Centro',
     })
-    @Transform(({ value }) => value?.trim().toLowerCase())
+    @Transform(({ value }) => value?.trim())
     @IsString({ message: 'La dirección debe ser una cadena de texto' })
     @IsNotEmpty({ message: 'La dirección es obligatoria' })
     @Matches(/\S/, { message: 'La dirección no puede estar vacía o contener solo espacios' })
@@ -61,10 +61,6 @@ export class CreateCustomerDto {
         example: 21,
         default: 21,
     })
-    @IsOptional()
-    @IsInt({ message: 'El ID del régimen tributario debe ser un número entero' })
-    @Min(1, { message: 'El ID del régimen tributario debe ser positivo' })
-    tributeId?: number;
 
     @ApiPropertyOptional({
         description: 'ID del tipo de documento de identificación (por defecto 3)',

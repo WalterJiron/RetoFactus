@@ -140,6 +140,7 @@ CREATE TABLE Customers (
     TributeId INT,            -- ID de API Factus (regimen de tributación)
     IdentificationDocumentId INT, -- ID de API Factus (tipo de documento)
     MunicipalityId INT,       -- ID de API Factus (municipio)
+    IdEstablishment INT REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE,
     
     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     DateUpdate TIMESTAMPTZ,

@@ -129,22 +129,13 @@ CREATE TABLE Customers (
     TributeId INT,            -- ID de API Factus (regimen de tributación)
     IdentificationDocumentId INT, -- ID de API Factus (tipo de documento)
     MunicipalityId INT,       -- ID de API Factus (municipio)
+    IdEstablishment INT REFERENCES Establishments(IdEstablishment) ON DELETE RESTRICT ON UPDATE CASCADE,
     
     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     DateUpdate TIMESTAMPTZ,
     DateDelete TIMESTAMPTZ,
     
     Active BOOLEAN DEFAULT TRUE
-);
-
-CREATE TABLE Tributes (
-    IdTribute SERIAL PRIMARY KEY NOT NULL,
-    Code VARCHAR(10) NOT NULL UNIQUE,
-    Name VARCHAR(100) NOT NULL,
-    Active BOOLEAN DEFAULT TRUE,
-    DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    DateUpdate TIMESTAMPTZ,
-    DateDelete TIMESTAMPTZ
 );
 
 CREATE SEQUENCE secuencia_venta START 1;
@@ -176,7 +167,7 @@ CREATE TABLE SaleDetails (
     DiscountRate DECIMAL(5,2) DEFAULT 0,  -- Tasa de descuento aplicada al producto 
     Subtotal DECIMAL(15,2) NOT NULL,  -- (Quantity * UnitPrice) * (1 - DiscountRate/100)
     TaxRate DECIMAL(5,2) NOT NULL,  -- Porcentaje de impuesto aplicado
-    TributeId INT REFERENCES Tributes(IdTribute) ON DELETE RESTRICT ON UPDATE CASCADE,  -- Tipo de impuesto (opcional)
+    TributeId INT,  -- Tipo de impuesto (opcional)
     IsExcluded BOOLEAN DEFAULT FALSE,  -- Indica si esta excluido de impuestos
     UnitMeasureId INT NOT NULL,  -- ID de unidad de medida (API Factus)
     
@@ -3103,7 +3094,7 @@ $$;
 
 
 
----------------------------------------------------- PRODUCTS DETALS ----------------------------------------------------
+---------------------------------------------------- PAYMENT FROMS ----------------------------------------------------
 /*
   Funcion: create_paymentforms
   Descripcion: Inserta una nueva forma de pago aplicando validaciones de negocio.
@@ -3346,7 +3337,7 @@ $$;
 
 
 
----------------------------------------------------- CRUD SUB CATEGORY ----------------------------------------------------
+---------------------------------------------------- CUSTOMERS ----------------------------------------------------
 /*
   Funcion: create_customers
   Descripcion: Inserta un nuevo cliente aplicando validaciones de negocio.
@@ -3359,6 +3350,7 @@ $$;
     - p_tributeid: ID de regimen tributario (opcional, por defecto 21).
     - p_identificationdocumentid: ID de tipo de documento (opcional, por defecto 3).
     - p_municipalityid: ID de municipio (opcional).
+    - p_idestablishment: ID del establecimiento (opcional, debe existir y estar activo si se proporciona).
   Retorna:
     - VARCHAR(100): mensaje de exito o error.
 */
@@ -3370,14 +3362,17 @@ CREATE OR REPLACE FUNCTION create_customers(
     p_phone VARCHAR(50),
     p_tributeid INT DEFAULT 21,
     p_identificationdocumentid INT DEFAULT 3,
-    p_municipalityid INT DEFAULT NULL
+    p_municipalityid INT DEFAULT NULL,
+    p_idestablishment INT DEFAULT NULL
 )
 RETURNS VARCHAR(100)
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_idcustomer BIGINT;
+    v_establishment_active BOOLEAN;
 BEGIN
+    -- Validaciones
     IF p_identification IS NULL OR TRIM(p_identification) = '' THEN
         RETURN 'Error: La identificacion es obligatoria.';
     END IF;
@@ -3397,7 +3392,6 @@ BEGIN
     IF LENGTH(TRIM(p_identification)) < 3 THEN
         RETURN 'Error: La identificacion debe tener al menos 3 caracteres.';
     END IF;
-
     IF LENGTH(TRIM(p_names)) < 2 THEN
         RETURN 'Error: Los nombres deben tener al menos 2 caracteres.';
     END IF;
@@ -3420,8 +3414,18 @@ BEGIN
         RETURN 'Error: Ya existe un cliente activo con ese telefono.';
     END IF;
 
+    IF p_idestablishment IS NOT NULL THEN
+        SELECT Active INTO v_establishment_active
+        FROM Establishments WHERE IdEstablishment = p_idestablishment;
+        IF NOT FOUND THEN
+            RETURN 'Error: El establecimiento especificado no existe.';
+        END IF;
+        IF NOT v_establishment_active THEN
+            RETURN 'Error: El establecimiento especificado esta inactivo.';
+        END IF;
+    END IF;
 
-    -- Transaccion 
+    -- Transaccion
     BEGIN
         INSERT INTO Customers (
             Identification,
@@ -3431,16 +3435,20 @@ BEGIN
             Phone,
             TributeId,
             IdentificationDocumentId,
-            MunicipalityId 
+            MunicipalityId,
+            IdEstablishment,
+            Active
         ) VALUES (
             TRIM(p_identification),
             TRIM(p_names),
-            LOWER(TRIM(p_address)),
+            TRIM(p_address),
             LOWER(TRIM(p_email)),
             TRIM(p_phone),
             p_tributeid,
             p_identificationdocumentid,
-            p_municipalityid 
+            p_municipalityid,
+            p_idestablishment,
+            true
         ) RETURNING IdCustomer INTO v_idcustomer;
 
         RETURN 'Cliente creado correctamente. ID: ' || v_idcustomer;
@@ -3452,7 +3460,6 @@ BEGIN
     END;
 END;
 $$;
-
 
 /*
   Funcion: update_customers
@@ -3467,6 +3474,7 @@ $$;
     - p_tributeid: Nuevo TributeId (opcional).
     - p_identificationdocumentid: Nuevo IdentificationDocumentId (opcional).
     - p_municipalityid: Nuevo MunicipalityId (opcional).
+    - p_idestablishment: Nuevo ID de establecimiento (opcional, debe existir y estar activo).
   Retorna:
     - VARCHAR(100): mensaje de exito o error.
 */
@@ -3479,7 +3487,8 @@ CREATE OR REPLACE FUNCTION update_customers(
     p_phone VARCHAR(50) DEFAULT NULL,
     p_tributeid INT DEFAULT NULL,
     p_identificationdocumentid INT DEFAULT NULL,
-    p_municipalityid INT DEFAULT NULL
+    p_municipalityid INT DEFAULT NULL,
+    p_idestablishment INT DEFAULT NULL
 )
 RETURNS VARCHAR(100)
 LANGUAGE plpgsql
@@ -3489,9 +3498,10 @@ DECLARE
     v_current_email VARCHAR(100);
     v_current_phone VARCHAR(50);
     v_active BOOLEAN;
+    v_establishment_active BOOLEAN;
 BEGIN
-
-    SELECT Identification, Email, Phone, Active INTO v_current_identification, v_current_email, v_current_phone, v_active
+    SELECT Identification, Email, Phone, Active 
+    INTO v_current_identification, v_current_email, v_current_phone, v_active
     FROM Customers WHERE IdCustomer = p_idcustomer;
     
     IF NOT FOUND THEN
@@ -3502,16 +3512,14 @@ BEGIN
         RETURN 'Error: No se puede actualizar un cliente eliminado.';
     END IF;
 
+    -- Validar identificacion
     IF p_identification IS NOT NULL THEN
         IF TRIM(p_identification) = '' THEN
             RETURN 'Error: La identificacion no puede estar vacia.';
         END IF;
-        
         IF LENGTH(TRIM(p_identification)) < 3 THEN
             RETURN 'Error: La identificacion debe tener al menos 3 caracteres.';
         END IF;
-
-        -- Verificar unicidad excluyendo el actual
         IF TRIM(p_identification) != v_current_identification THEN
             IF EXISTS (SELECT 1 FROM Customers WHERE Identification = TRIM(p_identification) AND Active = true AND IdCustomer != p_idcustomer) THEN
                 RETURN 'Error: Ya existe otro cliente activo con esa identificacion.';
@@ -3519,6 +3527,7 @@ BEGIN
         END IF;
     END IF;
 
+    -- Validar nombres
     IF p_names IS NOT NULL THEN
         IF TRIM(p_names) = '' THEN
             RETURN 'Error: Los nombres no pueden estar vacios.';
@@ -3528,20 +3537,19 @@ BEGIN
         END IF;
     END IF;
 
+    -- Validar direccion
     IF p_address IS NOT NULL AND TRIM(p_address) = '' THEN
         RETURN 'Error: La direccion no puede estar vacia.';
     END IF;
 
+    -- Validar email
     IF p_email IS NOT NULL THEN
         IF TRIM(p_email) = '' THEN
             RETURN 'Error: El email no puede estar vacio.';
         END IF;
-        
         IF TRIM(p_email) !~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' THEN
             RETURN 'Error: Formato de email invalido.';
         END IF;
-        
-        -- Verificar unicidad excluyendo el actual
         IF LOWER(TRIM(p_email)) != v_current_email THEN
             IF EXISTS (SELECT 1 FROM Customers WHERE Email = LOWER(TRIM(p_email)) AND Active = true AND IdCustomer != p_idcustomer) THEN
                 RETURN 'Error: Ya existe otro cliente activo con ese email.';
@@ -3549,17 +3557,14 @@ BEGIN
         END IF;
     END IF;
 
-    -- 6. Validar telefono si se proporciona
+    -- Validar telefono
     IF p_phone IS NOT NULL THEN
         IF TRIM(p_phone) = '' THEN
             RETURN 'Error: El telefono no puede estar vacio.';
         END IF;
-        
         IF TRIM(p_phone) !~ '^[0-9\s\-\+\(\)]+$' THEN
             RETURN 'Error: Formato de telefono invalido. Use solo digitos, espacios, +, -, ().';
         END IF;
-        
-        -- Verificar unicidad excluyendo el actual
         IF TRIM(p_phone) != v_current_phone THEN
             IF EXISTS (SELECT 1 FROM Customers WHERE Phone = TRIM(p_phone) AND Active = true AND IdCustomer != p_idcustomer) THEN
                 RETURN 'Error: Ya existe otro cliente activo con ese telefono.';
@@ -3567,7 +3572,19 @@ BEGIN
         END IF;
     END IF;
 
-    -- Transaccion 
+    -- Validar establecimiento si se proporciona
+    IF p_idestablishment IS NOT NULL THEN
+        SELECT Active INTO v_establishment_active
+        FROM Establishments WHERE IdEstablishment = p_idestablishment;
+        IF NOT FOUND THEN
+            RETURN 'Error: El establecimiento especificado no existe.';
+        END IF;
+        IF NOT v_establishment_active THEN
+            RETURN 'Error: El establecimiento especificado esta inactivo.';
+        END IF;
+    END IF;
+
+    -- Transaccion
     BEGIN
         UPDATE Customers
         SET
@@ -3579,6 +3596,7 @@ BEGIN
             TributeId = COALESCE(p_tributeid, TributeId),
             IdentificationDocumentId = COALESCE(p_identificationdocumentid, IdentificationDocumentId),
             MunicipalityId = COALESCE(p_municipalityid, MunicipalityId),
+            IdEstablishment = COALESCE(p_idestablishment, IdEstablishment),
             DateUpdate = CURRENT_TIMESTAMP
         WHERE IdCustomer = p_idcustomer;
 
@@ -3629,7 +3647,6 @@ BEGIN
         RETURN 'Error: No se puede eliminar el cliente porque tiene ' || v_sales_count || ' ventas activas asociadas.';
     END IF;
 
-    -- Transaccion 
     BEGIN
         UPDATE Customers
         SET 
@@ -3638,14 +3655,13 @@ BEGIN
             DateUpdate = CURRENT_TIMESTAMP
         WHERE IdCustomer = p_idcustomer;
 
-        RETURN 'Cliente "' || v_names || '" eliminado correctamente.';
+        RETURN 'Cliente (' || v_names || ') eliminado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al eliminar cliente: ' || SQLERRM;
     END;
 END;
 $$;
-
 
 /*
   Funcion: restore_customers
@@ -3666,8 +3682,8 @@ DECLARE
     v_names VARCHAR(100);
     v_active BOOLEAN;
 BEGIN
-    
-    SELECT Identification, Email, Phone, Names, Active INTO v_identification, v_email, v_phone, v_names, v_active
+    SELECT Identification, Email, Phone, Names, Active 
+    INTO v_identification, v_email, v_phone, v_names, v_active
     FROM Customers WHERE IdCustomer = p_idcustomer;
     
     IF NOT FOUND THEN
@@ -3688,7 +3704,6 @@ BEGIN
         RETURN 'Error: Ya existe otro cliente activo con el mismo telefono. No se puede restaurar.';
     END IF;
 
-    -- Transaccion
     BEGIN
         UPDATE Customers
         SET 
@@ -3697,7 +3712,7 @@ BEGIN
             DateUpdate = CURRENT_TIMESTAMP
         WHERE IdCustomer = p_idcustomer;
 
-        RETURN 'Cliente "' || v_names || '" restaurado correctamente.';
+        RETURN 'Cliente (' || v_names || ') restaurado correctamente.';
     EXCEPTION
         WHEN OTHERS THEN
             RETURN 'Error al restaurar cliente: ' || SQLERRM;
@@ -3743,6 +3758,7 @@ CREATE INDEX idx_customers_identification ON Customers(Identification);
 CREATE INDEX idx_customers_tributeid ON Customers(TributeId);
 CREATE INDEX idx_customers_municipalityid ON Customers(MunicipalityId);
 CREATE INDEX idx_customers_email_active ON Customers(Email) WHERE Active = true;
+CREATE INDEX IF NOT EXISTS idx_customers_idestablishment ON Customers(IdEstablishment) WHERE Active = true;
 
 -- Indices para Sale
 CREATE INDEX idx_sale_establishmentid ON Sale(EstablishmentId);
