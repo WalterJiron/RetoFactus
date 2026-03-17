@@ -28,6 +28,7 @@ export default async (req: any, res: any) => {
             .addTag('Products', 'Gestión del catálogo de productos y existencias')
             .addTag('Customers', 'Gestión de clientes para facturación')
             .addTag('Payment Forms', 'Consulta de formas de pago disponibles')
+            .addTag('Sales', 'Gestión de las ventas para facturación')
             .addTag('Factus', 'Módulo de facturación e integración con Factus')
             .addBearerAuth(
                 {

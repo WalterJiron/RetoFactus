@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class SalesService {
-  create(createSaleDto: CreateSaleDto) {
+
+  constructor(private readonly db: DataSource) { }
+
+  async create(createSaleDto: CreateSaleDto, estId: number) {
     return 'This action adds a new sale';
   }
 
-  findAll() {
+  async findAll(estId: number) {
     return `This action returns all sales`;
   }
 
-  findOne(id: number) {
+  async findOne(id: number, estId: number) {
     return `This action returns a #${id} sale`;
   }
 
-  update(id: number, updateSaleDto: UpdateSaleDto) {
+  async update(id: number, updateSaleDto: UpdateSaleDto, estId: number) {
     return `This action updates a #${id} sale`;
   }
 
-  remove(id: number) {
+  async remove(id: number, estId: number) {
     return `This action removes a #${id} sale`;
+  }
+
+  async restore(id: number, estId: number) {
+    return `This action restores a #${id} sale`;
   }
 }
