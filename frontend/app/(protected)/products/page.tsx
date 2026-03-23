@@ -1,53 +1,23 @@
-// app/(protected)/productos/page.tsx
+// app/(protected)/products/page.tsx
 "use client";
 
 import React from "react";
-import {
-  Button,
-  Chip,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-} from "@heroui/react";
-import { Plus, Package } from "lucide-react";
+import { Chip } from "@heroui/react";
+import { Package } from "lucide-react";
+import { useDisclosure } from "@heroui/react";
 
-import { DataTable } from "@/components/common/DataTable";
-import { FilterBar } from "@/components/common/FilterBar";
+import { PageTemplate } from "@/components/common/PageTemplate";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ActionButtons } from "@/components/common/ActionButtons";
 import { useTableData } from "@/hooks/useTableData";
 
-// Tipos
-type Product = {
-  idproduct: string;
-  code_reference: string;
-  nameproduct: string;
-  productdescription: string;
-  stock: number;
-  measurementunit: number;
-  productactive: boolean;
-  productdatecreate: string;
-  idsubcategory: number;
-  namesubcategory: string;
-  subcategorydescription: string;
-  subcategoryactive: boolean;
-  idcategory: number;
-  namecategory: string;
-  categorydescription: string;
-  categoryactive: boolean;
-  purchaseprice: string;
-  saleprice: string;
-  minstock: number;
-  datecreate: string;
-  dateupdate: string | null;
-  datedelete: string | null;
-  active: boolean;
-};
+import { Product } from "./_components/ProductViewModal";
+import { ProductViewModal } from "./_components/ProductViewModal";
+import { ProductFormModal } from "./_components/ProductFormModal";
 
-// Datos de ejemplo
+// ────────────────────────────────────────────────────────────────────────────
+// Static demo data
+// ────────────────────────────────────────────────────────────────────────────
 const initialProducts: Product[] = [
   {
     idproduct: "30",
@@ -380,7 +350,8 @@ const initialProducts: Product[] = [
     idproduct: "17",
     code_reference: "LMP-SLT-FLR",
     nameproduct: "Lámpara de suelo",
-    productdescription: "Lámpara de pie modernista con pantalla de lino, 150cm",
+    productdescription:
+      "Lámpara de pie modernista con pantalla de lino, 150cm",
     stock: 7,
     measurementunit: 1,
     productactive: true,
@@ -430,7 +401,8 @@ const initialProducts: Product[] = [
     idproduct: "15",
     code_reference: "SET-KNF-6PC",
     nameproduct: "Juego de cuchillos",
-    productdescription: "Set de 6 cuchillos profesionales de acero inoxidable",
+    productdescription:
+      "Set de 6 cuchillos profesionales de acero inoxidable",
     stock: 33,
     measurementunit: 1,
     productactive: true,
@@ -480,7 +452,8 @@ const initialProducts: Product[] = [
     idproduct: "13",
     code_reference: "SCR-BKC-CHR",
     nameproduct: "Silla de comedor",
-    productdescription: "Silla de comedor estilo escandinavo en roble natural",
+    productdescription:
+      "Silla de comedor estilo escandinavo en roble natural",
     stock: 9,
     measurementunit: 1,
     productactive: true,
@@ -556,7 +529,8 @@ const initialProducts: Product[] = [
     idproduct: "10",
     code_reference: "BLZ-LIN-WHT",
     nameproduct: "Blusa de lino",
-    productdescription: "Blusa de lino blanco con detalles de encaje, talla M",
+    productdescription:
+      "Blusa de lino blanco con detalles de encaje, talla M",
     stock: 24,
     measurementunit: 1,
     productactive: true,
@@ -787,7 +761,8 @@ const initialProducts: Product[] = [
     idproduct: "1",
     code_reference: "SM-G980F",
     nameproduct: "Samsung Galaxy S20",
-    productdescription: 'Smartphone Android con pantalla AMOLED 6.2", 128GB',
+    productdescription:
+      'Smartphone Android con pantalla AMOLED 6.2", 128GB',
     stock: 15,
     measurementunit: 1,
     productactive: true,
@@ -810,11 +785,29 @@ const initialProducts: Product[] = [
   },
 ];
 
+// ────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ────────────────────────────────────────────────────────────────────────────
+function formatPrice(price: string) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+  }).format(Number(price));
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Page
+// ────────────────────────────────────────────────────────────────────────────
 export default function ProductosPage() {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  // ── Modal controls ──────────────────────────────────────────────────────
+  const viewModal = useDisclosure();
+  const formModal = useDisclosure();
+
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(
     null,
   );
+
+  // ── Filters ─────────────────────────────────────────────────────────────
   const [selectedCategory, setSelectedCategory] = React.useState("all");
   const [selectedStatus, setSelectedStatus] = React.useState("all");
 
@@ -824,34 +817,25 @@ export default function ProductosPage() {
     initialRowsPerPage: 10,
   });
 
-  // Filtrado adicional por categoría y estado
-  const filteredByCategoryAndStatus = React.useMemo(() => {
-    return tableData.filteredData.filter((product) => {
+  const filteredData = React.useMemo(() => {
+    return tableData.filteredData.filter((p) => {
       const matchesCategory =
-        selectedCategory === "all" || product.namecategory === selectedCategory;
+        selectedCategory === "all" || p.namecategory === selectedCategory;
       const matchesStatus =
         selectedStatus === "all" ||
-        (selectedStatus === "active" && product.active) ||
-        (selectedStatus === "inactive" && !product.active);
+        (selectedStatus === "active" && p.active) ||
+        (selectedStatus === "inactive" && !p.active);
 
       return matchesCategory && matchesStatus;
     });
   }, [tableData.filteredData, selectedCategory, selectedStatus]);
 
-  // Obtener categorías únicas
-  const categories = React.useMemo(() => {
-    return [...new Set(initialProducts.map((p) => p.namecategory))];
-  }, []);
+  const categories = React.useMemo(
+    () => [...new Set(initialProducts.map((p) => p.namecategory))],
+    [],
+  );
 
-  // Formatear precio
-  const formatPrice = (price: string) => {
-    return new Intl.NumberFormat("es-CL", {
-      style: "currency",
-      currency: "CLP",
-    }).format(Number(price));
-  };
-
-  // Definición de columnas
+  // ── Column definitions ──────────────────────────────────────────────────
   const columns = [
     {
       key: "idproduct" as keyof Product,
@@ -884,9 +868,7 @@ export default function ProductosPage() {
           <Chip color="primary" size="sm" variant="flat">
             {value}
           </Chip>
-          <span className="text-xs text-gray-500">
-            {product.namesubcategory}
-          </span>
+          <span className="text-xs text-gray-500">{product.namesubcategory}</span>
         </div>
       ),
     },
@@ -933,17 +915,20 @@ export default function ProductosPage() {
       render: (_: any, product: Product) => (
         <ActionButtons
           onDelete={() => console.log("Eliminar", product.idproduct)}
-          onEdit={() => console.log("Editar", product.idproduct)}
+          onEdit={() => {
+            setSelectedProduct(product);
+            formModal.onOpen();
+          }}
           onView={() => {
             setSelectedProduct(product);
-            onOpen();
+            viewModal.onOpen();
           }}
         />
       ),
     },
   ];
 
-  // Definición de filtros
+  // ── Filter definitions ──────────────────────────────────────────────────
   const filters = [
     {
       key: "category",
@@ -968,150 +953,64 @@ export default function ProductosPage() {
     },
   ];
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Package className="h-8 w-8 text-primary-600" />
-            Gestión de Productos
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Administra y controla el inventario de productos
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            color="primary"
-            startContent={<Plus className="h-4 w-4" />}
-            onPress={onOpen}
-          >
-            Nuevo Producto
-          </Button>
-        </div>
-      </header>
+  const paginatedData = filteredData.slice(
+    (tableData.page - 1) * tableData.rowsPerPage,
+    tableData.page * tableData.rowsPerPage,
+  );
 
-      {/* Filtros y búsqueda */}
-      <FilterBar
+  // ── Render ───────────────────────────────────────────────────────────────
+  return (
+    <>
+      <PageTemplate<Product>
+        columns={columns}
+        createLabel="Nuevo Producto"
+        data={paginatedData}
+        description="Administra y controla el inventario de productos"
+        emptyMessage="No hay productos que coincidan con los filtros"
         filters={filters}
-        placeholder="Buscar productos..."
+        icon={Package}
+        page={tableData.page}
+        rowsPerPage={tableData.rowsPerPage}
+        searchPlaceholder="Buscar productos..."
         searchTerm={tableData.searchTerm}
+        sortConfig={tableData.sortConfig}
+        tableTitle="Lista de Productos"
+        title="Gestión de Productos"
+        totalPages={Math.ceil(filteredData.length / tableData.rowsPerPage)}
         onClearFilters={() => {
           tableData.setSearchTerm("");
           setSelectedCategory("all");
           setSelectedStatus("all");
         }}
-        onSearchChange={tableData.setSearchTerm}
-      />
-
-      {/* Tabla de productos */}
-      <DataTable
-        columns={columns}
-        data={filteredByCategoryAndStatus.slice(
-          (tableData.page - 1) * tableData.rowsPerPage,
-          tableData.page * tableData.rowsPerPage,
-        )}
-        emptyMessage="No hay productos que coincidan con los filtros"
-        page={tableData.page}
-        rowsPerPage={tableData.rowsPerPage}
-        sortConfig={tableData.sortConfig}
-        title="Lista de Productos"
-        totalPages={Math.ceil(
-          filteredByCategoryAndStatus.length / tableData.rowsPerPage,
-        )}
+        onCreateClick={formModal.onOpen}
         onPageChange={tableData.setPage}
         onRowsPerPageChange={tableData.setRowsPerPage}
+        onSearchChange={tableData.setSearchTerm}
         onSort={tableData.handleSort}
       />
 
-      {/* Modal para nuevo producto */}
-      <Modal isOpen={isOpen} size="4xl" onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <Plus className="h-5 w-5 text-primary-600" />
-                  <h2 className="text-xl font-bold">
-                    {selectedProduct
-                      ? "Detalles del Producto"
-                      : "Nuevo Producto"}
-                  </h2>
-                </div>
-              </ModalHeader>
-              <ModalBody>
-                {selectedProduct ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <span className="text-sm font-medium block">
-                          Código
-                        </span>
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                          {selectedProduct.code_reference}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <span className="text-sm font-medium block">
-                          Nombre
-                        </span>
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                          {selectedProduct.nameproduct}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <span className="text-sm font-medium block">
-                        Descripción
-                      </span>
-                      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                        {selectedProduct.productdescription}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <span className="text-sm font-medium block">
-                          Categoría
-                        </span>
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                          {selectedProduct.namecategory}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <span className="text-sm font-medium block">
-                          Subcategoría
-                        </span>
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                          {selectedProduct.namesubcategory}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <span className="text-sm font-medium block">Stock</span>
-                        <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                          {selectedProduct.stock} unidades
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <p>Formulario para crear nuevo producto...</p>
-                  </div>
-                )}
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button color="primary" onPress={onClose}>
-                  {selectedProduct ? "Cerrar" : "Guardar Producto"}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-    </div>
+      {/* ── View modal ──────────────────────────────────────── */}
+      <ProductViewModal
+        isOpen={viewModal.isOpen}
+        product={selectedProduct}
+        onOpenChange={(open) => {
+          viewModal.onOpenChange();
+          if (!open) setSelectedProduct(null);
+        }}
+      />
+
+      {/* ── Form modal (create / edit) ───────────────────────── */}
+      <ProductFormModal
+        isOpen={formModal.isOpen}
+        product={selectedProduct}
+        onOpenChange={(open) => {
+          formModal.onOpenChange();
+          if (!open) setSelectedProduct(null);
+        }}
+        onSave={(data) => {
+          console.log("Guardar producto", data);
+        }}
+      />
+    </>
   );
 }

@@ -1,8 +1,10 @@
 import {
+  Building2,
   FileText,
   Home,
   Package,
   Settings,
+  Shield,
   ShoppingBag,
   UserLock,
   Users,
@@ -16,8 +18,9 @@ export const siteConfig = {
 
   navMenuItems: [
     { label: "Inicio", icon: Home, path: "/home" },
+    { label: "Establecimientos", icon: Building2, path: "/establishments" },
     { label: "Usuarios", icon: UserLock, path: "/users" },
-    { label: "Roles", icon: Settings, path: "/roles" },
+    { label: "Roles", icon: Shield, path: "/roles" },
     { label: "Productos", icon: Package, path: "/products" },
     { label: "Clientes", icon: Users, path: "/customers" },
     { label: "Ventas", icon: ShoppingBag, path: "/ventas" },

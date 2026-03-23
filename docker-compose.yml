@@ -37,6 +37,7 @@ services:
       - LIMIT_REQUESTS_LOGIN=5
       - TTL_REQUESTS_LOGIN=60000
       - BLOCK_DURATION_LOGIN=600000
+      - ALLOWED_ORIGINS=http://localhost:3000, http://localhost:4000
     ports:
       - "4000:4000"
     volumes:
@@ -49,6 +50,12 @@ services:
   web:
     build: ./frontend
     container_name: Web_RetoFactus
+    environment:
+      # URL interna entre contenedores: usa el nombre del servicio 'api' en lugar de localhost
+      - API_URL=http://api:4000
+      - NEXTAUTH_URL=http://localhost:3000
+      # IMPORTANTE: debe coincidir exactamente con NEXTAUTH_SECRET del .env
+      - NEXTAUTH_SECRET=snvkjdiohelvññ5998dsaicgub**-.efvbouuguodmsvln kqsdr5675vbb3.95.+-`~veoL
     ports:
       - "3000:3000"
 

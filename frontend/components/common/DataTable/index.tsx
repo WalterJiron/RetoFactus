@@ -12,6 +12,7 @@ import {
   CardBody,
   CardHeader,
   Pagination,
+  Spinner,
 } from "@heroui/react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 
@@ -40,6 +41,7 @@ interface DataTableProps<T> {
   emptyMessage?: string;
   showRowCount?: boolean;
   className?: string;
+  isLoading?: boolean;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -56,6 +58,7 @@ export function DataTable<T extends Record<string, any>>({
   emptyMessage = "No hay datos disponibles",
   showRowCount = true,
   className = "",
+  isLoading = false,
 }: DataTableProps<T>) {
   return (
     <Card
@@ -103,7 +106,10 @@ export function DataTable<T extends Record<string, any>>({
                 </TableColumn>
               ))}
             </TableHeader>
-            <TableBody>
+            <TableBody
+              isLoading={isLoading}
+              loadingContent={<Spinner label="Cargando datos..." />}
+            >
               {data.length > 0 ? (
                 data.map((item, index) => (
                   <TableRow

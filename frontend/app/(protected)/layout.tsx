@@ -21,18 +21,28 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function ProtectedLayout({
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect("/");
+  }
+
   return (
     <main>
       <section className="flex min-h-screen">
         <Sidebar />
 
         {/* Contenido principal */}
-        <div className="flex-1 pl-64">
+        <div className="flex-1 pl-32">
           <div className="container mx-auto px-6 py-8">{children}</div>
         </div>
       </section>

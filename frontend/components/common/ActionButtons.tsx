@@ -3,7 +3,7 @@
 
 import React from "react";
 import { Button, Tooltip } from "@heroui/react";
-import { Eye, Edit, Trash2, MoreVertical } from "lucide-react";
+import { Eye, Edit, Trash2, MoreVertical, Power } from "lucide-react";
 
 interface ActionButtonsProps {
   viewTooltip?: string;
@@ -16,6 +16,8 @@ interface ActionButtonsProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onMore?: () => void;
+  onToggle?: () => void;
+  isActive?: boolean;
 }
 
 export function ActionButtons({
@@ -23,6 +25,8 @@ export function ActionButtons({
   onEdit,
   onDelete,
   onMore,
+  onToggle,
+  isActive,
   viewTooltip = "Ver detalles",
   editTooltip = "Editar",
   deleteTooltip = "Eliminar",
@@ -43,6 +47,19 @@ export function ActionButtons({
         <Tooltip content={editTooltip}>
           <Button isIconOnly size={size} variant={variant} onPress={onEdit}>
             <Edit className="h-4 w-4" />
+          </Button>
+        </Tooltip>
+      )}
+      {onToggle && (
+        <Tooltip content={isActive ? "Desactivar" : "Activar"}>
+          <Button
+            isIconOnly
+            color={isActive ? "danger" : "success"}
+            size={size}
+            variant={variant}
+            onPress={onToggle}
+          >
+            <Power className="h-4 w-4" />
           </Button>
         </Tooltip>
       )}

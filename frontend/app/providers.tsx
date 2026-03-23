@@ -6,6 +6,9 @@ import * as React from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { SessionProvider } from "next-auth/react";
+import { LoadingProvider } from "@/hooks/useLoading";
+import { GlobalLoadingIndicator } from "@/components/common/GlobalLoadingIndicator";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -24,8 +27,15 @@ export function Providers({ children, themeProps }: ProvidersProps) {
   const router = useRouter();
 
   return (
-    <HeroUIProvider navigate={router.push}>
-      <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
-    </HeroUIProvider>
+    <SessionProvider>
+      <LoadingProvider>
+        <HeroUIProvider navigate={router.push}>
+          <NextThemesProvider {...themeProps}>
+            {children}
+            <GlobalLoadingIndicator />
+          </NextThemesProvider>
+        </HeroUIProvider>
+      </LoadingProvider>
+    </SessionProvider>
   );
 }

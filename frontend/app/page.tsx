@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Card, CardBody, CardHeader, Input, Button } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import {
@@ -12,9 +13,11 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -26,6 +29,10 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Validación de email
   const validateEmail = (email: string) => {
@@ -66,33 +73,46 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setApiError("");
     setIsSubmitting(true);
 
-    // Marcar ambos campos como tocados para mostrar todos los errores
-    setTouched({ email: true, password: true });
-
+    // Validar campos antes de hacer la petición
     const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
+    const passwordError = errors.password; // solo si ya había error de formato
 
-    if (emailError || passwordError) {
-      setErrors({ email: emailError, password: passwordError });
+    if (emailError) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
+      setTouched({ email: true, password: touched.password });
       setIsSubmitting(false);
-
       return;
     }
 
-    // Simulación de petición de autenticación
+    if (!password) {
+      setErrors((prev) => ({ ...prev, password: "La contraseña es requerida" }));
+      setTouched({ email: true, password: true });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      // Aquí iría la lógica real de autenticación
-      console.log("Credenciales válidas:", { email, password });
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
 
-      // Simulamos un delay para mostrar estado de carga
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (result?.error) {
+        // Mostramos el error exacto que viene del backend
+        setApiError(result.error);
+        setIsSubmitting(false);
+        return;
+      }
 
-      // Redirigir a /home
       router.push("/home");
+      router.refresh();
     } catch (error) {
       console.error("Error en autenticación:", error);
+      setApiError("Error de conexión con el servidor");
       setIsSubmitting(false);
     }
   };
@@ -132,6 +152,12 @@ export default function LoginPage() {
     );
   };
 
+  if (!mounted) {
+    // Al retornar null o un div vacío en el primer render, evitamos cualquier posible
+    // discrepancia de hidratación causada por autocompletado del navegador o extensiones
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900" />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
@@ -147,6 +173,13 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardBody className="px-8 pb-8">
+          {/* Error de autenticación del backend */}
+          {apiError && (
+            <div className="mb-4 rounded-lg bg-danger-50 border border-danger-200 px-4 py-3 text-sm text-danger-700 dark:bg-danger-900/20 dark:border-danger-800 dark:text-danger-400 flex items-start gap-2">
+              <XCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <span>{apiError}</span>
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Campo Email */}
             <div className="space-y-2">

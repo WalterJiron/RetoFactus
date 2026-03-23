@@ -19,7 +19,8 @@ import { SalesModule } from './sales/sales.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [dbConfig]
+      load: [dbConfig],
+      envFilePath: '.env'
     }),
     DatabaseModule,
 

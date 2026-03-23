@@ -4,35 +4,34 @@ import { LogOut } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { siteConfig } from "@/config/site";
 
+import { useLoading } from "@/hooks/useLoading";
+
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { navigate } = useLoading();
 
   const handleNavigation = (path) => {
-    router.push(path);
+    navigate(path);
   };
 
-  const handleLogout = () => {
-    // Lógica de logout
-    router.push("/");
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/";
   };
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen fixed left-0 top-0 z-40">
-      {/* Header del Sidebar */}
-      <header className="p-6 border-b border-gray-200 dark:border-gray-800">
-        <article className="flex items-center gap-3">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Reto Factus
-            </h1>
-          </div>
-        </article>
+    <aside className="w-32 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen fixed left-0 top-0 z-40">
+      {/* Header */}
+      <header className="py-4 border-b border-gray-200 dark:border-gray-800">
+        <h1 className="text-sm font-bold text-gray-900 dark:text-white text-center px-2">
+          Reto Factus
+        </h1>
       </header>
 
-      {/* Menú principal */}
-      <nav className="flex-1 p-4 overflow-y-auto">
-        <ul className="space-y-1">
+      {/* Menú principal - desplazable si es necesario */}
+      <nav className="flex-1 py-4 overflow-y-auto">
+        <ul className="space-y-2 px-2">
           {siteConfig.navMenuItems.map((item) => {
             const isActive = pathname === item.path;
             const Icon = item.icon;
@@ -41,16 +40,19 @@ export default function Sidebar() {
               <li key={item.label}>
                 <button
                   onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left
+                  className={`w-full flex flex-col items-center justify-center gap-1.5 py-2 px-1 rounded-lg transition-all duration-200 group
                     ${
                       isActive
-                        ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 border-l-4 border-primary-500"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        ? "bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 ring-1 ring-primary-200 dark:ring-primary-800"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105"
                     }`}
                   aria-current={isActive ? "page" : undefined}
+                  title={item.label}
                 >
-                  <Icon className="h-6 w-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <Icon className="h-6 w-6 flex-shrink-0 transition-transform group-hover:scale-110" />
+                  <span className="text-xs font-medium text-center leading-tight">
+                    {item.label}
+                  </span>
                 </button>
               </li>
             );
@@ -58,14 +60,14 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Footer del Sidebar */}
-      <footer className="p-6 border-t border-gray-200 dark:border-gray-800">
+      {/* Footer - Cerrar sesión */}
+      <footer className="p-3 border-t border-gray-200 dark:border-gray-800">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-danger hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"
+          className="w-full flex flex-col items-center justify-center gap-2 py-2 px-1 rounded-lg text-danger hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-all duration-200 text-sm font-medium group"
+          title="Cerrar sesión"
         >
-          <LogOut className="h-5 w-5" />
-          <span className="font-medium">Cerrar Sesión</span>
+          <LogOut className="h-8 w-8 transition-transform group-hover:scale-110" />
         </button>
       </footer>
     </aside>
