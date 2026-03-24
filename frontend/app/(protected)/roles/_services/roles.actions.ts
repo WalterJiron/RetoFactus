@@ -2,6 +2,7 @@
 "use server";
 
 import { fetchServer } from "@/libs/fetchServer";
+
 import { Role, RoleDTO } from "../_types/roles.types";
 
 const API_URL = `${process.env.API_URL}/roles`;
@@ -19,7 +20,10 @@ export const createRoleAction = async (data: RoleDTO): Promise<Role> => {
   });
 };
 
-export const updateRoleAction = async (id: number, data: RoleDTO): Promise<Role> => {
+export const updateRoleAction = async (
+  id: number,
+  data: RoleDTO,
+): Promise<Role> => {
   return await fetchServer<Role>(`${API_URL}/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),

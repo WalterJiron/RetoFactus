@@ -18,6 +18,7 @@ interface ActionButtonsProps {
   onMore?: () => void;
   onToggle?: () => void;
   isActive?: boolean;
+  isEditDisabled?: boolean;
 }
 
 export function ActionButtons({
@@ -27,6 +28,7 @@ export function ActionButtons({
   onMore,
   onToggle,
   isActive,
+  isEditDisabled,
   viewTooltip = "Ver detalles",
   editTooltip = "Editar",
   deleteTooltip = "Eliminar",
@@ -44,8 +46,20 @@ export function ActionButtons({
         </Tooltip>
       )}
       {onEdit && (
-        <Tooltip content={editTooltip}>
-          <Button isIconOnly size={size} variant={variant} onPress={onEdit}>
+        <Tooltip
+          content={
+            isEditDisabled
+              ? "No se puede editar un usuario inactivo"
+              : editTooltip
+          }
+        >
+          <Button
+            isIconOnly
+            isDisabled={isEditDisabled}
+            size={size}
+            variant={variant}
+            onPress={onEdit}
+          >
             <Edit className="h-4 w-4" />
           </Button>
         </Tooltip>

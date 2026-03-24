@@ -2,41 +2,48 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
+
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export const fetchServer = async <T = any>(
-    input: string | URL | Request,
-    init?: RequestInit
+  input: string | URL | Request,
+  init?: RequestInit,
 ): Promise<T> => {
-    const cookieStore = await cookies();
-    let authToken = cookieStore.get("authToken")?.value;
+  const cookieStore = await cookies();
+  let authToken = cookieStore.get("authToken")?.value;
 
-    if (!authToken) {
-        const session = await getServerSession(authOptions);
-        authToken = session?.accessToken;
-    }
+  if (!authToken) {
+    const session = await getServerSession(authOptions);
 
-    if (!authToken) {
-        redirect("/");
-    }
+    authToken = session?.accessToken;
+  }
 
-    const response = await fetch(input, {
-        ...init,
-        headers: {
-            ...init?.headers,
-            "Content-Type": "application/json",
-            ...(authToken && { Authorization: `Bearer ${authToken}` }),
-        },
-    });
+  if (!authToken) {
+    redirect("/");
+  }
 
-    if (response.status === 401) {
-        redirect("/");
-    }
+  const response = await fetch(input, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      "Content-Type": "application/json",
+      ...(authToken && { Authorization: `Bearer ${authToken}` }),
+    },
+  });
 
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! status: ${response.status}`);
-    // }
+  if (response.status === 401) {
+    redirect("/");
+  }
 
-    const responseData = await response.json();
-    return responseData;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+
+    throw new Error(
+      errorData.message || `HTTP error! status: ${response.status}`,
+    );
+  }
+
+  const responseData = await response.json().catch(() => ({}));
+
+  return responseData;
 };

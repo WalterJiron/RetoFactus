@@ -4,6 +4,7 @@
 import React from "react";
 import { Button } from "@heroui/react";
 import { Plus, LucideIcon } from "lucide-react";
+
 import { FilterBar } from "@/components/common/FilterBar";
 import { DataTable } from "@/components/common/DataTable";
 
@@ -122,10 +123,10 @@ export function PageTemplate<T extends Record<string, any>>({
           <div className="flex items-center gap-3">
             <Button
               color="primary"
-              startContent={<Plus className="h-4 w-4" />}
-              onPress={onCreateClick}
               isDisabled={isLoading}
               isLoading={isLoading}
+              startContent={<Plus className="h-4 w-4" />}
+              onPress={onCreateClick}
             >
               {createLabel}
             </Button>
@@ -149,6 +150,7 @@ export function PageTemplate<T extends Record<string, any>>({
         columns={columns as any}
         data={data}
         emptyMessage={emptyMessage}
+        isLoading={isLoading}
         page={page}
         rowsPerPage={rowsPerPage}
         sortConfig={sortConfig ?? undefined}
@@ -157,7 +159,6 @@ export function PageTemplate<T extends Record<string, any>>({
         onPageChange={onPageChange}
         onRowsPerPageChange={onRowsPerPageChange}
         onSort={(key) => onSort(String(key))}
-        isLoading={isLoading}
       />
 
       {/* ── Modals / extra content ──────────────────────────── */}

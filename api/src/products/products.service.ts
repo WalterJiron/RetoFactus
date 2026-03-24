@@ -4,6 +4,7 @@ import { ResponseValidation } from '../utils/ResponseValidations';
 import { CreateProductFullDto } from './dto/create-product-full.dto';
 import { UpdateProductFullDto } from './dto/update-product-full.dto';
 import { CreateProductDetailsDto } from './dto/create-prodestDetails.dto';
+import { console } from 'inspector';
 
 @Injectable()
 export class ProductsService {
@@ -95,7 +96,7 @@ export class ProductsService {
           c.NameCategory,
           c.Description AS CategoryDescription,
           c.Active AS CategoryActive,
-          dp.iddetailproduct,
+          dp.iddetailproduct::integer iddetailproduct,
           COALESCE(dp.PurchasePrice, 0) AS PurchasePrice,
           COALESCE(dp.SalePrice, 0) AS SalePrice,
           COALESCE(dp.MinStock, 0) AS MinStock,
@@ -185,21 +186,25 @@ export class ProductsService {
 
     if (!result.length) throw new BadRequestException(`Error al actualizar el producto con el ID ${id}`);
 
+
     const updateProduct = ResponseValidation.forMessage(result, "correctamente");
+
     if (updateProduct.status !== 200) return updateProduct;
 
     const resultDetail = await this.db.query(
       `
-        SELECT update_detailproduct($1, $2, $3, $4) AS messagel;
+        SELECT update_detailproduct($1, $2, $3, $4) AS message;
       `,
       [
         idDetail, minStock, purchasePrice, salePrice
       ]
     );
 
+
     if (!resultDetail.length) throw new BadRequestException('Error al actualizar el detalle del producto');
 
     const updateDetail = ResponseValidation.forMessage(resultDetail, "correctamente");
+
     if (updateDetail.status !== 200) return updateDetail;
 
     return updateProduct;

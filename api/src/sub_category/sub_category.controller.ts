@@ -21,6 +21,7 @@ export class SubCategoryController {
     return await this.subCategoryService.create(createSubCategoryDto);
   }
 
+  @Auth(Role.Admin, Role.Vendedor)
   @Get()
   @ApiOperation({ summary: 'Listar subcategorías', description: 'Obtiene todas las subcategorías activas.' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Listado de subcategorías recuperado.' })
@@ -28,6 +29,7 @@ export class SubCategoryController {
     return await this.subCategoryService.findAll();
   }
 
+  @Auth(Role.Admin, Role.Vendedor)
   @Get(':id')
   @ApiOperation({ summary: 'Obtener subcategoría por ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Subcategoría encontrada.' })

@@ -46,6 +46,7 @@ export class CustomersController {
     return this.customersService.update(+id, updateCustomerDto, estId);
   }
 
+  @Auth(Role.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar cliente' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Cliente eliminado.' })
@@ -53,6 +54,7 @@ export class CustomersController {
     return this.customersService.remove(+id, estId);
   }
 
+  @Auth(Role.Admin)
   @Put('activate/:id')
   @ApiOperation({ summary: 'Restaurar cliente' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Cliente restaurado.' })

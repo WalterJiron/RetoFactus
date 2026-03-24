@@ -3800,6 +3800,54 @@ SELECT ProcInsertRol(
     1
 );
 
+SELECT ProcInsertRol(
+    'Gerente',
+    'Rol con permisos para supervisar equipos, revisar reportes generales y gestionar metas.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Inventario',
+    'Rol encargado de control de stock, movimientos de productos y ajustes de inventario.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Compras',
+    'Rol responsable de gestionar órdenes de compra, proveedores y recepción de mercancía.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Finanzas',
+    'Rol con acceso a facturación, conciliaciones bancarias y análisis financiero.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Soporte',
+    'Rol dedicado a la atención de incidencias, gestión de tickets y asistencia a clientes.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Marketing',
+    'Rol para la gestión de campañas, promociones y análisis de mercado.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Recursos Humanos',
+    'Rol encargado de gestión de personal, nómina y reclutamiento.',
+    1
+);
+
+SELECT ProcInsertRol(
+    'Auditor',
+    'Rol con permisos de solo lectura para revisión de registros y cumplimiento normativo.',
+    1
+);
+
 SELECT create_users(
     'Administrador General',
     'admin@gmail.com',
@@ -3811,3 +3859,397 @@ SELECT create_users(
 -- Asi esta en la API
 INSERT INTO paymentforms(code, name)
 VALUES('1','Pago de contado');
+
+
+SELECT create_category('Electrónicos', 'Productos electrónicos como teléfonos, computadoras, tablets, accesorios y dispositivos tecnológicos.');
+SELECT create_category('Ropa y Accesorios', 'Prendas de vestir para hombre, mujer y niños, incluyendo calzado, bolsos y complementos.');
+SELECT create_category('Hogar y Jardín', 'Artículos para el hogar, muebles, decoración, herramientas de jardinería y exteriores.');
+SELECT create_category('Deportes y Fitness', 'Equipamiento deportivo, ropa fitness, accesorios para entrenamiento y actividades al aire libre.');
+SELECT create_category('Alimentos y Bebidas', 'Productos alimenticios, bebidas, snacks, ingredientes y suministros de cocina.');
+SELECT create_category('Salud y Belleza', 'Productos de cuidado personal, cosmética, suplementos vitamínicos y artículos de higiene.');
+SELECT create_category('Automotriz', 'Accesorios para vehículos, herramientas automotrices, lubricantes y repuestos.');
+SELECT create_category('Juguetes y Juegos', 'Juguetes educativos, juegos de mesa, videojuegos y artículos de entretenimiento infantil.');
+SELECT create_category('Libros y Papelería', 'Libros de diversas temáticas, material de oficina, cuadernos y artículos de escritura.');
+SELECT create_category('Mascotas', 'Productos para mascotas, alimentos, accesorios, juguetes y artículos de cuidado animal.');
+
+-- Subcategorías para Electrónicos (ID 1)
+SELECT create_subcategory('Teléfonos Inteligentes', 'Smartphones de última generación con sistemas operativos iOS y Android.', 1);
+SELECT create_subcategory('Computadoras Portátiles', 'Laptops, notebooks y equipos portátiles para trabajo y entretenimiento.', 1);
+SELECT create_subcategory('Accesorios Electrónicos', 'Cargadores, cables, audífonos, fundas y otros complementos.', 1);
+SELECT create_subcategory('Tablets', 'Dispositivos táctiles para lectura, productividad y entretenimiento.', 1);
+
+-- Subcategorías para Ropa y Accesorios (ID 2)
+SELECT create_subcategory('Ropa de Hombre', 'Camisas, pantalones, chaquetas y trajes para caballero.', 2);
+SELECT create_subcategory('Ropa de Mujer', 'Vestidos, blusas, faldas y accesorios de moda femenina.', 2);
+SELECT create_subcategory('Calzado', 'Zapatos formales, deportivos, casuales y sandalias.', 2);
+SELECT create_subcategory('Bolsos y Carteras', 'Mochilas, carteras, bolsos de mano y maletines.', 2);
+
+-- Subcategorías para Hogar y Jardín (ID 3)
+SELECT create_subcategory('Muebles', 'Sofás, mesas, sillas, estanterías y armarios.', 3);
+SELECT create_subcategory('Decoración', 'Cuadros, lámparas, alfombras, cortinas y objetos decorativos.', 3);
+SELECT create_subcategory('Herramientas de Jardín', 'Podadoras, rastrillos, mangueras y fertilizantes.', 3);
+SELECT create_subcategory('Electrodomésticos', 'Refrigeradores, lavadoras, microondas y aspiradoras.', 3);
+
+-- Subcategorías para Deportes y Fitness (ID 4)
+SELECT create_subcategory('Equipamiento de Gimnasio', 'Mancuernas, bandas elásticas, colchonetas y máquinas de ejercicio.', 4);
+SELECT create_subcategory('Ropa Deportiva', 'Shorts, camisetas técnicas, leggings y calzado deportivo.', 4);
+SELECT create_subcategory('Deportes al Aire Libre', 'Carpa, bicicletas, equipo de camping y senderismo.', 4);
+
+-- Subcategorías para Alimentos y Bebidas (ID 5)
+SELECT create_subcategory('Bebidas', 'Refrescos, jugos, aguas saborizadas y bebidas energéticas.', 5);
+SELECT create_subcategory('Snacks', 'Papas fritas, galletas, frutos secos y barras de cereal.', 5);
+SELECT create_subcategory('Conservas y Enlatados', 'Vegetales, frutas, salsas y productos en conserva.', 5);
+
+-- Subcategorías para Salud y Belleza (ID 6)
+SELECT create_subcategory('Cuidado Facial', 'Limpiadores, cremas hidratantes, protectores solares y mascarillas.', 6);
+SELECT create_subcategory('Maquillaje', 'Bases, labiales, sombras, delineadores y brochas.', 6);
+
+
+
+
+-- Producto 1: Teléfono inteligente de gama alta
+SELECT create_product(
+    'SM-G998B',
+    'Samsung Galaxy S21 Ultra',
+    'Smartphone con pantalla Dynamic AMOLED 6.8", cámara cuádruple de 108MP, 12GB RAM, 256GB almacenamiento.',
+    1,  -- Subcategoría: Teléfonos Inteligentes
+    25,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Samsung Galaxy S21 Ultra' AND Active = true),
+    5,
+    750.000,
+    899.990
+);
+
+-- Producto 2: Laptop de alto rendimiento
+SELECT create_product(
+    'XPS-15-9510',
+    'Dell XPS 15',
+    'Laptop con procesador Intel Core i7-11800H, 16GB RAM, 512GB SSD, pantalla 15.6" 4K UHD+.',
+    2,
+    12,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Dell XPS 15' AND Active = true),
+    3,
+    1250.000,
+    1599.990
+);
+
+-- Producto 3: Audífonos inalámbricos
+SELECT create_product(
+    'WH-1000XM4',
+    'Sony WH-1000XM4',
+    'Audífonos over-ear con cancelación de ruido líder, batería de 30 horas, compatibilidad con Alexa y Google Assistant.',
+    3,
+    40,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Sony WH-1000XM4' AND Active = true),
+    10,
+    250.000,
+    349.990
+);
+
+-- Producto 4: Tablet para dibujo
+SELECT create_product(
+    'A2102',
+    'iPad Air 5ta generación',
+    'Tablet con chip M1, pantalla Liquid Retina 10.9", compatible con Apple Pencil 2da gen.',
+    4,
+    18,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'iPad Air 5ta generación' AND Active = true),
+    4,
+    550.000,
+    699.990
+);
+
+-- Producto 5: Camisa de vestir para hombre
+SELECT create_product(
+    'CSH-001',
+    'Camisa Oxford de manga larga',
+    'Camisa clásica de algodón, corte slim, disponible en colores blanco y azul.',
+    5,
+    50,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Camisa Oxford de manga larga' AND Active = true),
+    15,
+    25.000,
+    45.990
+);
+
+-- Producto 6: Vestido de noche para mujer
+SELECT create_product(
+    'VEST-202',
+    'Vestido largo con lentejuelas',
+    'Vestido elegante para ocasiones especiales, escote en V, cierre oculto.',
+    6,
+    8,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Vestido largo con lentejuelas' AND Active = true),
+    2,
+    80.000,
+    149.990
+);
+
+-- Producto 7: Zapatos deportivos
+SELECT create_product(
+    'RUN-23',
+    'Zapatillas Running UltraBoost',
+    'Calzado deportivo con tecnología Boost, amortiguación superior, suela de goma antideslizante.',
+    7,
+    30,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Zapatillas Running UltraBoost' AND Active = true),
+    8,
+    95.000,
+    179.990
+);
+
+-- Producto 8: Mochila ejecutiva
+SELECT create_product(
+    'MBK-450',
+    'Mochila para laptop 15.6"',
+    'Mochila acolchada con compartimento para laptop, varios bolsillos organizadores, material impermeable.',
+    8,
+    22,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Mochila para laptop 15.6"' AND Active = true),
+    6,
+    40.000,
+    79.990
+);
+
+-- Producto 9: Sofá de tres plazas
+SELECT create_product(
+    NULL,
+    'Sofá Seccional Moderno',
+    'Sofá tapizado en tela antimanchas, estructura de madera, incluye cojines decorativos.',
+    9,
+    7,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Sofá Seccional Moderno' AND Active = true),
+    1,
+    320.000,
+    549.990
+);
+
+-- Producto 10: Lámpara de pie LED
+SELECT create_product(
+    'LAMP-360',
+    'Lámpara de pie regulable',
+    'Lámpara con brazo articulado, luz LED ajustable en intensidad y temperatura de color.',
+    10,
+    15,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Lámpara de pie regulable' AND Active = true),
+    3,
+    45.000,
+    89.990
+);
+
+-- Producto 11: Cortadora de césped eléctrica
+SELECT create_product(
+    'MOW-1000W',
+    'Cortadora de césped eléctrica 1500W',
+    'Cortadora de pasto con motor de 1500W, ancho de corte 40cm, bolsa recolectora incluida.',
+    11,
+    6,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Cortadora de césped eléctrica 1500W' AND Active = true),
+    1,
+    180.000,
+    299.990
+);
+
+-- Producto 12: Licuadora de alta potencia
+SELECT create_product(
+    NULL,
+    'Licuadora Profesional 3HP',
+    'Licuadora con motor de 3HP, jarra de vidrio, cuchillas de acero inoxidable, funciones preprogramadas.',
+    12,
+    14,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Licuadora Profesional 3HP' AND Active = true),
+    4,
+    85.000,
+    149.990
+);
+
+-- Producto 13: Mancuernas ajustables
+SELECT create_product(
+    'DB-552',
+    'Set de mancuernas ajustables 20kg',
+    'Par de mancuernas con discos de 2.5kg, rango de 5kg a 20kg, incluye base organizadora.',
+    13,
+    10,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Set de mancuernas ajustables 20kg' AND Active = true),
+    3,
+    120.000,
+    199.990
+);
+
+-- Producto 14: Bicicleta de montaña
+SELECT create_product(
+    'MTB-29',
+    'Bicicleta R29 Doble Suspensión',
+    'Bicicleta de montaña con cuadro de aluminio, suspensión delantera y trasera, cambios Shimano 21 velocidades.',
+    15,
+    5,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Bicicleta R29 Doble Suspensión' AND Active = true),
+    1,
+    380.000,
+    599.990
+);
+
+-- Producto 15: Agua mineral natural
+SELECT create_product(
+    'WATER-500',
+    'Agua mineral sin gas 500ml',
+    'Agua pura de manantial en presentación de 500ml, pack de 12 unidades.',
+    16,
+    200,
+    2
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Agua mineral sin gas 500ml' AND Active = true),
+    40,
+    4.500,
+    8.990
+);
+
+-- Producto 16: Galletas de chocolate
+SELECT create_product(
+    NULL,
+    'Galletas con chispas de chocolate',
+    'Galletas crujientes con trozos de chocolate belga, presentación 150g.',
+    17,
+    120,
+    3
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Galletas con chispas de chocolate' AND Active = true),
+    25,
+    1.800,
+    3.490
+);
+
+-- Producto 17: Crema hidratante facial
+SELECT create_product(
+    'CRM-50',
+    'Crema hidratante antiarrugas',
+    'Crema con ácido hialurónico y vitamina C, textura ligera, para todo tipo de piel.',
+    19,
+    35,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Crema hidratante antiarrugas' AND Active = true),
+    10,
+    22.000,
+    45.990
+);
+
+-- Producto 18: Paleta de sombras de ojos
+SELECT create_product(
+    'EYE-12',
+    'Paleta de sombras 12 tonos',
+    'Paleta con colores neutros y vibrantes, acabados mate y shimmer, larga duración.',
+    20,
+    28,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Paleta de sombras 12 tonos' AND Active = true),
+    6,
+    15.000,
+    29.990
+);
+
+-- Producto 19: Atún en conserva
+SELECT create_product(
+    'TUNA-170',
+    'Atún claro en agua 170g',
+    'Atún de pesca sostenible, enlatado al natural, bajo en sodio.',
+    18,
+    150,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Atún claro en agua 170g' AND Active = true),
+    30,
+    2.200,
+    3.990
+);
+
+-- Producto 20: Cargador inalámbrico rápido
+SELECT create_product(
+    'CHG-15W',
+    'Cargador inalámbrico Qi 15W',
+    'Base de carga rápida compatible con iPhone y Android, incluye cable USB-C.',
+    3,
+    42,
+    1
+);
+SELECT create_detailproduct(
+    (SELECT IdProduct::INTEGER FROM Product WHERE NameProduct = 'Cargador inalámbrico Qi 15W' AND Active = true),
+    12,
+    18.000,
+    34.990
+);
+
+INSERT INTO ProductEstablishments (IdEstablishment, IdProduct)
+SELECT 1, IdProduct
+FROM Product
+WHERE NameProduct IN (
+    'Samsung Galaxy S21 Ultra',
+    'Dell XPS 15',
+    'Sony WH-1000XM4',
+    'iPad Air 5ta generación',
+    'Camisa Oxford de manga larga',
+    'Vestido largo con lentejuelas',
+    'Zapatillas Running UltraBoost',
+    'Mochila para laptop 15.6"',
+    'Sofá Seccional Moderno',
+    'Lámpara de pie regulable',
+    'Cortadora de césped eléctrica 1500W',
+    'Licuadora Profesional 3HP',
+    'Set de mancuernas ajustables 20kg',
+    'Bicicleta R29 Doble Suspensión',
+    'Agua mineral sin gas 500ml',
+    'Galletas con chispas de chocolate',
+    'Crema hidratante antiarrugas',
+    'Paleta de sombras 12 tonos',
+    'Atún claro en agua 170g',
+    'Cargador inalámbrico Qi 15W'
+)
+AND Active = true;

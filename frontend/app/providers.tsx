@@ -7,6 +7,8 @@ import { HeroUIProvider } from "@heroui/system";
 import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
+import { ToastProvider } from "@heroui/toast";
+
 import { LoadingProvider } from "@/hooks/useLoading";
 import { GlobalLoadingIndicator } from "@/components/common/GlobalLoadingIndicator";
 
@@ -31,6 +33,7 @@ export function Providers({ children, themeProps }: ProvidersProps) {
       <LoadingProvider>
         <HeroUIProvider navigate={router.push}>
           <NextThemesProvider {...themeProps}>
+            <ToastProvider />
             {children}
             <GlobalLoadingIndicator />
           </NextThemesProvider>

@@ -22,6 +22,7 @@ export class CategorysController {
     return await this.categorysService.create(createCategoryDto);
   }
 
+  @Auth(Role.Admin, Role.Vendedor)
   @Get()
   @ApiOperation({ summary: 'Listar categorías', description: 'Obtiene todas las categorías activas.' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Listado de categorías recuperado.' })
@@ -29,6 +30,7 @@ export class CategorysController {
     return await this.categorysService.findAll();
   }
 
+  @Auth(Role.Admin, Role.Vendedor)
   @Get(':id')
   @ApiOperation({ summary: 'Obtener categoría por ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Categoría encontrada.' })

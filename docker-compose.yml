@@ -51,10 +51,8 @@ services:
     build: ./frontend
     container_name: Web_RetoFactus
     environment:
-      # URL interna entre contenedores: usa el nombre del servicio 'api' en lugar de localhost
       - API_URL=http://api:4000
       - NEXTAUTH_URL=http://localhost:3000
-      # IMPORTANTE: debe coincidir exactamente con NEXTAUTH_SECRET del .env
       - NEXTAUTH_SECRET=snvkjdiohelvññ5998dsaicgub**-.efvbouuguodmsvln kqsdr5675vbb3.95.+-`~veoL
     ports:
       - "3000:3000"

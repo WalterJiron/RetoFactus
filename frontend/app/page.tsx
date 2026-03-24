@@ -84,13 +84,18 @@ export default function LoginPage() {
       setErrors((prev) => ({ ...prev, email: emailError }));
       setTouched({ email: true, password: touched.password });
       setIsSubmitting(false);
+
       return;
     }
 
     if (!password) {
-      setErrors((prev) => ({ ...prev, password: "La contraseña es requerida" }));
+      setErrors((prev) => ({
+        ...prev,
+        password: "La contraseña es requerida",
+      }));
       setTouched({ email: true, password: true });
       setIsSubmitting(false);
+
       return;
     }
 
@@ -105,6 +110,7 @@ export default function LoginPage() {
         // Mostramos el error exacto que viene del backend
         setApiError(result.error);
         setIsSubmitting(false);
+
         return;
       }
 
@@ -155,7 +161,9 @@ export default function LoginPage() {
   if (!mounted) {
     // Al retornar null o un div vacío en el primer render, evitamos cualquier posible
     // discrepancia de hidratación causada por autocompletado del navegador o extensiones
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900" />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900" />
+    );
   }
 
   return (

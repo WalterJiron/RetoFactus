@@ -11,33 +11,10 @@ import {
   Chip,
 } from "@heroui/react";
 import { Eye } from "lucide-react";
+
 import { StatusBadge } from "@/components/common/StatusBadge";
 
-export type Product = {
-  idproduct: string;
-  code_reference: string;
-  nameproduct: string;
-  productdescription: string;
-  stock: number;
-  measurementunit: number;
-  productactive: boolean;
-  productdatecreate: string;
-  idsubcategory: number;
-  namesubcategory: string;
-  subcategorydescription: string;
-  subcategoryactive: boolean;
-  idcategory: number;
-  namecategory: string;
-  categorydescription: string;
-  categoryactive: boolean;
-  purchaseprice: string;
-  saleprice: string;
-  minstock: number;
-  datecreate: string;
-  dateupdate: string | null;
-  datedelete: string | null;
-  active: boolean;
-};
+import { Product } from "../_types/products.types";
 
 type ProductViewModalProps = {
   isOpen: boolean;
@@ -45,7 +22,13 @@ type ProductViewModalProps = {
   product: Product | null;
 };
 
-function DetailField({ label, children }: { label: string; children: React.ReactNode }) {
+function DetailField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1">
       <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -65,7 +48,11 @@ function formatPrice(price: string) {
   }).format(Number(price));
 }
 
-export function ProductViewModal({ isOpen, onOpenChange, product }: ProductViewModalProps) {
+export function ProductViewModal({
+  isOpen,
+  onOpenChange,
+  product,
+}: ProductViewModalProps) {
   if (!product) return null;
 
   return (
@@ -84,9 +71,7 @@ export function ProductViewModal({ isOpen, onOpenChange, product }: ProductViewM
                 <DetailField label="Código de referencia">
                   <span className="font-mono">{product.code_reference}</span>
                 </DetailField>
-                <DetailField label="Nombre">
-                  {product.nameproduct}
-                </DetailField>
+                <DetailField label="Nombre">{product.nameproduct}</DetailField>
               </div>
 
               <DetailField label="Descripción">

@@ -53,7 +53,7 @@ export class UsersController {
     return await this.usersService.remove(+id);
   }
 
-  @Put('/active/:id')
+  @Put('/activate/:id')
   @ApiOperation({ summary: 'Restaurar usuario', description: 'Reactiva un usuario previamente eliminado.' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Usuario restaurado.' })
   async restore(@Param('id') id: number) {
