@@ -1,3 +1,5 @@
+import NextAuth, { DefaultSession } from "next-auth";
+
 declare module "next-auth" {
   /**
    * Extiende los tipos de Session para incluir accessToken
@@ -8,7 +10,7 @@ declare module "next-auth" {
       id: string;
       email: string;
       name?: string | null;
-    };
+    } & DefaultSession["user"];
   }
 
   /**
@@ -31,3 +33,4 @@ declare module "next-auth/jwt" {
     id?: string;
   }
 }
+

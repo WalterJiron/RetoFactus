@@ -55,10 +55,10 @@ export const useEstablishments = () => {
     }
   };
 
-  const editEstablishment = async (id: number, data: EstablishmentDTO) => {
+  const editEstablishment = async (data: EstablishmentDTO) => {
     setIsLoading(true);
     try {
-      const res = await updateEstablishmentAction(id, data);
+      const res = await updateEstablishmentAction(data);
 
       await fetchEstablishments();
       addToast({

@@ -7,7 +7,7 @@ import {
   EstablishmentDTO,
 } from "../_types/establishments.types";
 
-const API_URL = `${process.env.API_URL}/Establishments`;
+const API_URL = `${process.env.API_URL}/establishments`;
 
 export const getEstablishmentsAction = async (): Promise<Establishment[]> => {
   return await fetchServer<Establishment[]>(`${API_URL}/id`, {

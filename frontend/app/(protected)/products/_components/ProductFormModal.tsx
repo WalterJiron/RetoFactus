@@ -69,14 +69,20 @@ export const ProductFormModal = ({
     }
   }, [selectedProduct, isOpen, successData]);
 
-  const validate = () => {
+  const getValidationErrors = (vals: typeof formValues) => {
     const newErrors: Record<string, string> = {};
-    const name = formValues.nameProduct.trim();
-    const desc = formValues.description.trim();
-    const stock = parseInt(formValues.stock);
-    const minStock = parseInt(formValues.minStock);
-    const buyPrice = parseFloat(formValues.purchasePrice.replace(/[$,]/g, ""));
-    const sellPrice = parseFloat(formValues.salePrice.replace(/[$,]/g, ""));
+    const name = vals.nameProduct.trim();
+    const desc = vals.description.trim();
+    const stockStr = vals.stock.toString().trim();
+    const minStockStr = vals.minStock.toString().trim();
+    const stock = parseInt(stockStr);
+    const minStock = parseInt(minStockStr);
+    const buyPrice = parseFloat(
+      vals.purchasePrice.toString().replace(/[$,]/g, ""),
+    );
+    const sellPrice = parseFloat(
+      vals.salePrice.toString().replace(/[$,]/g, ""),
+    );
 
     if (!name) newErrors.nameProduct = "El nombre es obligatorio";
     else if (name.length < 2 || name.length > 80)
@@ -84,31 +90,49 @@ export const ProductFormModal = ({
 
     if (!desc) newErrors.description = "La descripción es obligatoria";
 
-    if (!formValues.idSubCategory)
+    if (!vals.idSubCategory)
       newErrors.idSubCategory = "La subcategoría es obligatoria";
 
-    if (isNaN(stock) || stock < 0)
+    if (stockStr === "" || isNaN(stock) || stock < 0)
       newErrors.stock = "El stock no puede ser negativo";
 
-    if (isNaN(minStock) || minStock < 0)
+    if (minStockStr === "" || isNaN(minStock) || minStock < 0)
       newErrors.minStock = "El stock mínimo no puede ser negativo";
 
-    if (stock < minStock)
+    if (!newErrors.stock && !newErrors.minStock && stock < minStock) {
       newErrors.stock = "El stock no puede ser menor al stock mínimo";
+    }
 
     if (isNaN(buyPrice) || buyPrice <= 0)
       newErrors.purchasePrice = "El precio debe ser mayor a 0";
 
     if (isNaN(sellPrice) || sellPrice <= 0)
       newErrors.salePrice = "El precio debe ser mayor a 0";
-    else if (sellPrice < buyPrice)
-      newErrors.salePrice =
-        "El precio de venta no puede ser menor al de compra";
+    else if (!newErrors.purchasePrice && sellPrice < buyPrice)
+      newErrors.salePrice = "El precio de venta no puede ser menor al de compra";
+
+    return newErrors;
+  };
+
+  const handleInputChange = (field: keyof typeof formValues, value: string) => {
+    const updatedValues = { ...formValues, [field]: value };
+
+    setFormValues(updatedValues);
+
+    // Si ya hay errores siendo mostrados, re-validamos todo en tiempo real
+    if (Object.keys(errors).length > 0) {
+      setErrors(getValidationErrors(updatedValues));
+    }
+  };
+
+  const validate = () => {
+    const newErrors = getValidationErrors(formValues);
 
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -196,7 +220,7 @@ export const ProductFormModal = ({
                     value={formValues.nameProduct}
                     variant="bordered"
                     onValueChange={(val) =>
-                      setFormValues((v) => ({ ...v, nameProduct: val }))
+                      handleInputChange("nameProduct", val)
                     }
                   />
 
@@ -208,7 +232,7 @@ export const ProductFormModal = ({
                     value={formValues.codeReference}
                     variant="bordered"
                     onValueChange={(val) =>
-                      setFormValues((v) => ({ ...v, codeReference: val }))
+                      handleInputChange("codeReference", val)
                     }
                   />
 
@@ -222,7 +246,7 @@ export const ProductFormModal = ({
                     value={formValues.description}
                     variant="bordered"
                     onValueChange={(val) =>
-                      setFormValues((v) => ({ ...v, description: val }))
+                      handleInputChange("description", val)
                     }
                   />
 
@@ -240,10 +264,10 @@ export const ProductFormModal = ({
                     }
                     variant="bordered"
                     onSelectionChange={(keys) =>
-                      setFormValues((v) => ({
-                        ...v,
-                        idSubCategory: Array.from(keys)[0] as string,
-                      }))
+                      handleInputChange(
+                        "idSubCategory",
+                        Array.from(keys)[0] as string,
+                      )
                     }
                   >
                     {(sub) => (
@@ -282,7 +306,7 @@ export const ProductFormModal = ({
                     value={formValues.purchasePrice}
                     variant="bordered"
                     onValueChange={(val) =>
-                      setFormValues((v) => ({ ...v, purchasePrice: val }))
+                      handleInputChange("purchasePrice", val)
                     }
                   />
 
@@ -298,9 +322,7 @@ export const ProductFormModal = ({
                     type="number"
                     value={formValues.salePrice}
                     variant="bordered"
-                    onValueChange={(val) =>
-                      setFormValues((v) => ({ ...v, salePrice: val }))
-                    }
+                    onValueChange={(val) => handleInputChange("salePrice", val)}
                   />
 
                   <Input
@@ -313,9 +335,7 @@ export const ProductFormModal = ({
                     type="number"
                     value={formValues.stock}
                     variant="bordered"
-                    onValueChange={(val) =>
-                      setFormValues((v) => ({ ...v, stock: val }))
-                    }
+                    onValueChange={(val) => handleInputChange("stock", val)}
                   />
 
                   <Input
@@ -327,9 +347,7 @@ export const ProductFormModal = ({
                     type="number"
                     value={formValues.minStock}
                     variant="bordered"
-                    onValueChange={(val) =>
-                      setFormValues((v) => ({ ...v, minStock: val }))
-                    }
+                    onValueChange={(val) => handleInputChange("minStock", val)}
                   />
                 </div>
               )}

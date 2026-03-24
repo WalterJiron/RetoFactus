@@ -93,10 +93,7 @@ export default function EstablishmentsPage() {
       let response;
 
       if (selectedEstablishment) {
-        response = await editEstablishment(
-          selectedEstablishment.idestablishment,
-          data,
-        );
+        response = await editEstablishment(data);
       } else {
         response = await addEstablishment(data);
       }

@@ -3,7 +3,7 @@
 
 import React from "react";
 import { UserRound, Mail, MapPin, Phone, IdCard, Store } from "lucide-react";
-import { Tooltip, Chip } from "@heroui/react";
+import { Tooltip } from "@heroui/react";
 
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ActionButtons } from "@/components/common/ActionButtons";
@@ -64,7 +64,11 @@ export const getCustomerColumns = ({
           <div className="p-1 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-400 group-hover/item:text-green-500 transition-colors">
             <Phone className="h-3.5 w-3.5" />
           </div>
-          <a href={`https://wa.me/${customer.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
+          <a
+            href={`https://wa.me/${customer.phone.replace(/\D/g, "")}`}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
               {customer.phone}
             </span>
