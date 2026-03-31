@@ -196,7 +196,8 @@ CREATE TABLE SaleDetails (
     
     DateCreate TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     DateUpdate TIMESTAMPTZ,
-    DateDelete TIMESTAMPTZ
+    DateDelete TIMESTAMPTZ,
+    Active BOOLEAN DEFAULT TRUE NOT NULL
 );
 
 
