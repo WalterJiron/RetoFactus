@@ -162,7 +162,7 @@ export class CustomersService {
       `, [id]
     );
 
-    if (customerRestore.length) throw new BadRequestException('Error al restaurar el cliente.');
+    if (!customerRestore.length) throw new BadRequestException('Error al restaurar el cliente.');
 
     return ResponseValidation.forMessage(customerRestore, "correctamente");
   }
