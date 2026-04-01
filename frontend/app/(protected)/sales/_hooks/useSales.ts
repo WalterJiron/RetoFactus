@@ -6,7 +6,6 @@ import { addToast } from "@heroui/toast";
 import { Sale, CreateSaleDTO, UpdateSaleDTO, SaleStatus } from "../_types/sales.types";
 import {
   getSalesAction,
-  getSaleByIdAction,
   createSaleAction,
   updateSaleAction,
   updateSaleStatusAction,
@@ -31,14 +30,6 @@ export const useSales = () => {
       setIsLoading(false);
     }
   }, []);
-
-  const fetchSaleById = async (id: number) => {
-    try {
-      return await getSaleByIdAction(id);
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to fetch sale details");
-    }
-  };
 
   const addSale = async (data: CreateSaleDTO) => {
     setIsLoading(true);
@@ -137,7 +128,6 @@ export const useSales = () => {
     error,
     clearError,
     refresh: fetchSales,
-    fetchSaleById,
     addSale,
     editSale,
     changeSaleStatus,

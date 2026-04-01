@@ -26,7 +26,6 @@ export default function SalesPage() {
     isLoading: salesLoading,
     error: salesError,
     clearError,
-    fetchSaleById,
     addSale,
     editSale,
     changeSaleStatus,
@@ -84,21 +83,17 @@ export default function SalesPage() {
     setSelectedSale(sale);
 
     if (sale) {
-      try {
-        const fullSale = await fetchSaleById(sale.id);
-        if (fullSale && fullSale.details) {
-          const formattedDetails: SaleDetailDTO[] = fullSale.details.map(d => ({
-            productId: d.product_id,
-            quantity: d.quantity,
-            unitPrice: d.unit_price,
-            discountRate: d.discount_rate,
-            taxRate: d.tax_rate,
-            unitMeasureId: d.unit_measure_id,
-          }));
-          setSaleDetails(formattedDetails);
-        }
-      } catch (err) {
-        console.error("Failed to load sale details", err);
+      if (sale.details && sale.details.length > 0) {
+        const formattedDetails: SaleDetailDTO[] = sale.details.map((d: any) => ({
+          productId: d.product_id,
+          quantity: d.quantity,
+          unitPrice: d.unit_price,
+          discountRate: d.discount_rate,
+          taxRate: d.tax_rate,
+          unitMeasureId: d.unit_measure_id,
+        }));
+        setSaleDetails(formattedDetails);
+      } else {
         setSaleDetails([]);
       }
     } else {
@@ -113,21 +108,17 @@ export default function SalesPage() {
     setIsModalLoading(true);
     setSelectedSale(sale);
 
-    try {
-      const fullSale = await fetchSaleById(sale.id);
-      if (fullSale && fullSale.details) {
-        const formattedDetails: SaleDetailDTO[] = fullSale.details.map(d => ({
-          productId: d.product_id,
-          quantity: d.quantity,
-          unitPrice: d.unit_price,
-          discountRate: d.discount_rate,
-          taxRate: d.tax_rate,
-          unitMeasureId: d.unit_measure_id,
-        }));
-        setSaleDetails(formattedDetails);
-      }
-    } catch (err) {
-      console.error("Failed to load sale details", err);
+    if (sale.details && sale.details.length > 0) {
+      const formattedDetails: SaleDetailDTO[] = sale.details.map((d: any) => ({
+        productId: d.product_id,
+        quantity: d.quantity,
+        unitPrice: d.unit_price,
+        discountRate: d.discount_rate,
+        taxRate: d.tax_rate,
+        unitMeasureId: d.unit_measure_id,
+      }));
+      setSaleDetails(formattedDetails);
+    } else {
       setSaleDetails([]);
     }
 

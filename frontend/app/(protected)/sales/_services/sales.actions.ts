@@ -11,12 +11,6 @@ export const getSalesAction = async (): Promise<Sale[]> => {
   });
 };
 
-export const getSaleByIdAction = async (id: number): Promise<Sale> => {
-  return await fetchServer<Sale>(`${API_URL}/${id}`, {
-    method: "GET",
-  });
-};
-
 export const createSaleAction = async (data: CreateSaleDTO): Promise<Sale> => {
   return await fetchServer<Sale>(API_URL, {
     method: "POST",

@@ -11,7 +11,7 @@ import { UpdateSaleStatusDto } from './dto/update-sale-status.dto';
 
 @Injectable()
 export class SalesService {
-  constructor(private readonly db: DataSource) {}
+  constructor(private readonly db: DataSource) { }
 
   async create(createSaleDto: CreateSaleDto, estId: number) {
     const result = await this.db.query(
@@ -74,7 +74,62 @@ export class SalesService {
           s.DateCreate              AS date_create,
           s.DateUpdate              AS date_update,
           s.DateDelete              AS date_delete,
-          s.Active                  AS active
+          s.Active                  AS active,
+          -- Productos embebidos
+          COALESCE(
+            (
+              SELECT json_agg(
+                json_build_object(
+                  'id_detail', sd.IdDetail,
+                  'sale_id', sd.SaleId,
+                  'product_id', sd.ProductId,
+                  'product_code', p.code_reference,
+                  'product_name', p.NameProduct,
+                  'product_description', p.Description,
+                  'product_measurement_unit', p.MeasurementUnit,
+                  'product_current_stock', p.Stock,
+                  'sub_category_id', sc.IdSubCategory,
+                  'sub_category_name', sc.NameSubCategory,
+                  'category_id', cat.IdCategory,
+                  'category_name', cat.NameCategory,
+                  'quantity', sd.Quantity,
+                  'unit_price', sd.UnitPrice,
+                  'discount_rate', sd.DiscountRate,
+                  'subtotal', sd.Subtotal,
+                  'tax_rate', sd.TaxRate,
+                  'tribute_id', sd.TributeId,
+                  'is_excluded', sd.IsExcluded,
+                  'unit_measure_id', sd.UnitMeasureId,
+                  'date_create', sd.DateCreate,
+                  'date_update', sd.DateUpdate
+                ) ORDER BY sd.IdDetail ASC
+              )
+              FROM SaleDetails sd
+              LEFT JOIN Product p        ON sd.ProductId    = p.IdProduct
+              LEFT JOIN SubCategory sc   ON p.IdSubCategory = sc.IdSubCategory
+              LEFT JOIN Category cat     ON sc.CategorySub  = cat.IdCategory
+              WHERE sd.SaleId = s.IdInternal
+                AND sd.DateDelete IS NULL
+            ),
+            '[]'::json
+          ) AS details,
+          -- Recibos embebidos
+          COALESCE(
+            (
+              SELECT json_agg(
+                json_build_object(
+                  'id_receipt', r.IdReceipt,
+                  'name_receipt', r.NameReceipt,
+                  'name_sale', r.NaneSale,
+                  'public_url', r.public_url,
+                  'date_create', r.DateCreate
+                ) ORDER BY r.IdReceipt ASC
+              )
+              FROM Receipt r
+              WHERE r.IdSale = s.IdInternal
+            ),
+            '[]'::json
+          ) AS receipts
         FROM Sale s
         INNER JOIN Establishments e  ON s.EstablishmentId = e.IdEstablishment
         INNER JOIN Customers c       ON s.CustomerId      = c.IdCustomer
@@ -94,7 +149,7 @@ export class SalesService {
   }
 
   async findOne(id: number, estId: number) {
-    // Cabecera de la venta con información completa de relaciones
+    // Cabecera de la venta con información completa de relaciones, items y recibos
     const sale = await this.db.query(
       `
         SELECT
@@ -127,7 +182,62 @@ export class SalesService {
           s.DateCreate              AS date_create,
           s.DateUpdate              AS date_update,
           s.DateDelete              AS date_delete,
-          s.Active                  AS active
+          s.Active                  AS active,
+          -- Productos (Items)
+          COALESCE(
+            (
+              SELECT json_agg(
+                json_build_object(
+                  'id_detail', sd.IdDetail,
+                  'sale_id', sd.SaleId,
+                  'product_id', sd.ProductId,
+                  'product_code', p.code_reference,
+                  'product_name', p.NameProduct,
+                  'product_description', p.Description,
+                  'product_measurement_unit', p.MeasurementUnit,
+                  'product_current_stock', p.Stock,
+                  'sub_category_id', sc.IdSubCategory,
+                  'sub_category_name', sc.NameSubCategory,
+                  'category_id', cat.IdCategory,
+                  'category_name', cat.NameCategory,
+                  'quantity', sd.Quantity,
+                  'unit_price', sd.UnitPrice,
+                  'discount_rate', sd.DiscountRate,
+                  'subtotal', sd.Subtotal,
+                  'tax_rate', sd.TaxRate,
+                  'tribute_id', sd.TributeId,
+                  'is_excluded', sd.IsExcluded,
+                  'unit_measure_id', sd.UnitMeasureId,
+                  'date_create', sd.DateCreate,
+                  'date_update', sd.DateUpdate
+                ) ORDER BY sd.IdDetail ASC
+              )
+              FROM SaleDetails sd
+              LEFT JOIN Product p        ON sd.ProductId    = p.IdProduct
+              LEFT JOIN SubCategory sc   ON p.IdSubCategory = sc.IdSubCategory
+              LEFT JOIN Category cat     ON sc.CategorySub  = cat.IdCategory
+              WHERE sd.SaleId = s.IdInternal
+                AND sd.DateDelete IS NULL
+            ),
+            '[]'::json
+          ) AS details,
+          -- Recibos
+          COALESCE(
+            (
+              SELECT json_agg(
+                json_build_object(
+                  'id_receipt', r.IdReceipt,
+                  'name_receipt', r.NameReceipt,
+                  'name_sale', r.NaneSale,
+                  'public_url', r.public_url,
+                  'date_create', r.DateCreate
+                ) ORDER BY r.IdReceipt ASC
+              )
+              FROM Receipt r
+              WHERE r.IdSale = s.IdInternal
+            ),
+            '[]'::json
+          ) AS receipts
         FROM Sale s
         INNER JOIN Establishments e  ON s.EstablishmentId = e.IdEstablishment
         INNER JOIN Customers c       ON s.CustomerId      = c.IdCustomer
@@ -143,69 +253,7 @@ export class SalesService {
         `La venta con el ID ${id} no existe en el sistema.`,
       );
 
-    // Líneas de detalle con información completa del producto y su jerarquía
-    const details = await this.db.query(
-      `
-        SELECT
-          sd.IdDetail               AS id_detail,
-          sd.SaleId                 AS sale_id,
-          -- Producto
-          sd.ProductId              AS product_id,
-          p.code_reference          AS product_code,
-          p.NameProduct             AS product_name,
-          p.Description             AS product_description,
-          p.MeasurementUnit         AS product_measurement_unit,
-          p.Stock                   AS product_current_stock,
-          -- Subcategoria
-          sc.IdSubCategory          AS sub_category_id,
-          sc.NameSubCategory        AS sub_category_name,
-          -- Categoria
-          cat.IdCategory            AS category_id,
-          cat.NameCategory          AS category_name,
-          -- Valores del detalle
-          sd.Quantity               AS quantity,
-          sd.UnitPrice              AS unit_price,
-          sd.DiscountRate           AS discount_rate,
-          sd.Subtotal               AS subtotal,
-          sd.TaxRate                AS tax_rate,
-          sd.TributeId              AS tribute_id,
-          sd.IsExcluded             AS is_excluded,
-          sd.UnitMeasureId          AS unit_measure_id,
-          -- Auditoria del detalle
-          sd.DateCreate             AS date_create,
-          sd.DateUpdate             AS date_update
-        FROM SaleDetails sd
-        INNER JOIN Product p        ON sd.ProductId    = p.IdProduct
-        INNER JOIN SubCategory sc   ON p.IdSubCategory = sc.IdSubCategory
-        INNER JOIN Category cat     ON sc.CategorySub  = cat.IdCategory
-        WHERE sd.SaleId = $1
-          AND sd.Active = true
-        ORDER BY sd.IdDetail ASC;
-      `,
-      [id],
-    );
-
-    // Recibos asociados a la venta
-    const receipts = await this.db.query(
-      `
-        SELECT
-          r.IdReceipt               AS id_receipt,
-          r.NameReceipt             AS name_receipt,
-          r.NaneSale                AS name_sale,
-          r.public_url              AS public_url,
-          r.DateCreate              AS date_create
-        FROM Receipt r
-        WHERE r.IdSale = $1
-        ORDER BY r.IdReceipt ASC;
-      `,
-      [id],
-    );
-
-    return {
-      ...sale[0],
-      details,
-      receipts,
-    };
+    return sale[0];
   }
 
   async update(id: number, updateSaleDto: UpdateSaleDto, estId: number) {
