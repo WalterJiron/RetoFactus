@@ -27,7 +27,7 @@ export default function HomePage() {
         </section>
       </header>
 
-      {/* Accesos rápidos */}
+      {/* Accesos rapidos */}
       <article aria-labelledby="quick-access-title">
         <section className="flex items-center justify-between mb-6">
           <h2

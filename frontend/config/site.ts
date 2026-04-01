@@ -27,7 +27,7 @@ export const siteConfig = {
     { label: "Productos", icon: Package, path: "/products" },
     { label: "Clientes", icon: Users, path: "/customers" },
     { label: "Ventas", icon: ShoppingBag, path: "/sales" },
-    { label: "Facturación", icon: FileText, path: "/facturacion" },
+    { label: "Facturación", icon: FileText, path: "/receipt" },
   ],
 
   quickAccess: [
@@ -37,8 +37,8 @@ export const siteConfig = {
       icon: ShoppingBag,
       color: "bg-blue-500",
       gradient: "from-blue-500 to-blue-600",
-      href: "/ventas",
-      stats: "24 nuevas",
+      href: "/sales",
+      stats: "25 nuevas",
       statColor: "text-blue-600 dark:text-blue-400",
     },
     {
@@ -57,7 +57,7 @@ export const siteConfig = {
       icon: FileText,
       color: "bg-purple-500",
       gradient: "from-purple-500 to-purple-600",
-      href: "/facturacion",
+      href: "/receipt",
       stats: "48 pendientes",
       statColor: "text-purple-600 dark:text-purple-400",
     },

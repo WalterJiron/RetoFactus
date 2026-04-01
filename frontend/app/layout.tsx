@@ -37,7 +37,7 @@ export default function RootLayout({
           "min-h-screen text-foreground bg-background font-sans antialiased",
         )}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "black" }}>
+        <Providers themeProps={{ attribute: "class", defaultTheme: "system", enableSystem: true }}>
           <main>{children}</main>
         </Providers>
       </body>

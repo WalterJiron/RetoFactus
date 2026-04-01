@@ -32,9 +32,6 @@ import { CurrentEstablishment } from '../auth/decorators/get-establishment.decor
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // POST  /sales
-  // ───────────────────────────────────────────────────────────────────────────
   @Post()
   @ApiOperation({
     summary: 'Crear una nueva venta',
@@ -64,9 +61,6 @@ export class SalesController {
     return await this.salesService.create(createSaleDto, estId);
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // GET  /sales
-  // ───────────────────────────────────────────────────────────────────────────
   @Get()
   @ApiOperation({
     summary: 'Listar todas las ventas del establecimiento',
@@ -90,9 +84,6 @@ export class SalesController {
     return await this.salesService.findAll(estId);
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // GET  /sales/:id
-  // ───────────────────────────────────────────────────────────────────────────
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener una venta por ID',
@@ -125,9 +116,6 @@ export class SalesController {
     return await this.salesService.findOne(+id, estId);
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // PATCH  /sales/:id
-  // ───────────────────────────────────────────────────────────────────────────
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar una venta',
@@ -164,20 +152,17 @@ export class SalesController {
     return await this.salesService.update(+id, updateSaleDto, estId);
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // PATCH  /sales/:id/status
-  // ───────────────────────────────────────────────────────────────────────────
   @Patch(':id/status')
   @ApiOperation({
     summary: 'Cambiar el estado de una venta',
     description:
       'Actualiza el campo **Status** de una venta. ' +
       'Solo se permiten las siguientes transiciones:\n\n' +
-      '| Estado actual | → | Estado nuevo | Efecto en stock |\n' +
+      '| Estado actual | -> | Estado nuevo | Efecto en stock |\n' +
       '|---|---|---|---|\n' +
-      '| `pending` | → | `completed` | Sin cambio |\n' +
-      '| `pending` | → | `cancelled` | Stock devuelto |\n' +
-      '| `cancelled` | → | `pending` | Stock descontado |\n\n' +
+      '| `pending` | -> | `completed` | Sin cambio |\n' +
+      '| `pending` | -> | `cancelled` | Stock devuelto |\n' +
+      '| `cancelled` | -> | `pending` | Stock descontado |\n\n' +
       'Una venta en estado `completed` no puede cambiar de estado.',
   })
   @ApiParam({
@@ -208,9 +193,6 @@ export class SalesController {
     return await this.salesService.updateStatus(+id, updateSaleStatusDto, estId);
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // DELETE  /sales/:id
-  // ───────────────────────────────────────────────────────────────────────────
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar una venta (soft delete)',
@@ -244,9 +226,6 @@ export class SalesController {
     return await this.salesService.remove(+id, estId);
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // PUT  /sales/activate/:id
-  // ───────────────────────────────────────────────────────────────────────────
   @Put('activate/:id')
   @ApiOperation({
     summary: 'Restaurar una venta eliminada',

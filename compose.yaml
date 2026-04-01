@@ -54,8 +54,16 @@ services:
       - API_URL=http://api:4000
       - NEXTAUTH_URL=http://localhost:3000
       - NEXTAUTH_SECRET=snvkjdiohelvññ5998dsaicgub**-.efvbouuguodmsvln kqsdr5675vbb3.95.+-`~veoL
+      # For development
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+      - NEXT_JS_DEV_WATCH_POLLING=1
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+      - /app/frontend/.next
 
 volumes:
   postgres_data:

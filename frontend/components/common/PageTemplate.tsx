@@ -134,18 +134,18 @@ export function PageTemplate<T extends Record<string, any>>({
         )}
       </header>
 
-      {/* ── Filter bar ─────────────────────────────────────── */}
+      {/* Filter bar */}
       {(filters.length > 0 || onSearchChange) && (
         <FilterBar
           filters={filters}
           placeholder={searchPlaceholder}
           searchTerm={searchTerm}
-          onClearFilters={onClearFilters ?? (() => {})}
-          onSearchChange={onSearchChange ?? (() => {})}
+          onClearFilters={onClearFilters ?? (() => { })}
+          onSearchChange={onSearchChange ?? (() => { })}
         />
       )}
 
-      {/* ── Data table ─────────────────────────────────────── */}
+      {/* Data table */}
       <DataTable
         columns={columns as any}
         data={data}
@@ -161,7 +161,7 @@ export function PageTemplate<T extends Record<string, any>>({
         onSort={(key) => onSort(String(key))}
       />
 
-      {/* ── Modals / extra content ──────────────────────────── */}
+      {/* Modals / extra content */}
       {children}
     </div>
   );

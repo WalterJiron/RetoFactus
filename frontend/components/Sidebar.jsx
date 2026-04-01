@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { siteConfig } from "@/config/site";
 
 import { useLoading } from "@/hooks/useLoading";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 export default function Sidebar() {
   const router = useRouter();
@@ -23,10 +24,13 @@ export default function Sidebar() {
   return (
     <aside className="w-32 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen fixed left-0 top-0 z-40">
       {/* Header */}
-      <header className="py-4 border-b border-gray-200 dark:border-gray-800">
+      <header className="py-4 border-b border-gray-200 dark:border-gray-800 flex flex-col items-center gap-3">
         <h1 className="text-sm font-bold text-gray-900 dark:text-white text-center px-2">
           Reto Factus
         </h1>
+        <div className="flex justify-center">
+          <ThemeSwitch />
+        </div>
       </header>
 
       {/* Menú principal - desplazable si es necesario */}

@@ -280,18 +280,6 @@ export const CustomerFormModal = ({
                       setFormValues((prev) => ({ ...prev, municipalityId: v }))
                     }
                   />
-
-                  <Input
-                    isReadOnly
-                    className="md:col-span-6"
-                    label="Establecimiento"
-                    placeholder="Asignado por defecto"
-                    startContent={
-                      <Building2 className="h-4 w-4 text-gray-400" />
-                    }
-                    value={selectedCustomer?.establishmentname ?? ""}
-                    variant="bordered"
-                  />
                 </div>
               )}
             </ModalBody>

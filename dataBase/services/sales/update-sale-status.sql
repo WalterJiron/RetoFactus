@@ -2,9 +2,9 @@
   Funcion: update_sale_status
   Descripcion: Cambia el estado (Status) de una venta activa.
                Solo permite transiciones validas entre estados:
-                 - pending   → completed
-                 - pending   → cancelled
-                 - cancelled → pending   (reactivacion)
+                 - pending: completed
+                 - pending: cancelled
+                 - cancelled: pending   (reactivacion)
                Una venta 'completed' no puede cambiar de estado.
   Parametros:
     - p_idinternal : ID interno de la venta.
@@ -24,12 +24,12 @@ DECLARE
     v_active         BOOLEAN;
     v_reference      VARCHAR(20);
 BEGIN
-    -- 1. Validar que el nuevo estado es permitido
+    -- Validar que el nuevo estado es permitido
     IF p_new_status NOT IN ('pending', 'completed', 'cancelled') THEN
         RETURN 'Error: Estado invalido. Los valores permitidos son: pending, completed, cancelled.';
     END IF;
 
-    -- 2. Obtener estado actual de la venta
+    -- Obtener estado actual de la venta
     SELECT Status, Active, ReferenceCode
     INTO   v_current_status, v_active, v_reference
     FROM   Sale
@@ -43,12 +43,12 @@ BEGIN
         RETURN 'Error: No se puede cambiar el estado de una venta eliminada.';
     END IF;
 
-    -- 3. Validar que no se ponga el mismo estado
+    -- Validar que no se ponga el mismo estado
     IF v_current_status = p_new_status THEN
         RETURN 'Error: La venta ya se encuentra en estado ' || p_new_status || '.';
     END IF;
 
-    -- 4. Validar transiciones permitidas
+    -- Validar transiciones permitidas
     IF v_current_status = 'completed' THEN
         RETURN 'Error: Una venta completada no puede cambiar de estado.';
     END IF;
@@ -57,7 +57,7 @@ BEGIN
         RETURN 'Error: Una venta cancelada no puede pasar directamente a completada. Debe volver a pending primero.';
     END IF;
 
-    -- 5. Si se cancela, devolver el stock a los productos
+    -- Si se cancela, devolver el stock a los productos
     IF p_new_status = 'cancelled' AND v_current_status = 'pending' THEN
         UPDATE Product p
         SET    Stock = Stock + sd.Quantity
@@ -67,7 +67,7 @@ BEGIN
           AND  p.IdProduct = sd.ProductId;
     END IF;
 
-    -- 6. Si se reactiva (cancelled → pending), descontar stock nuevamente
+    -- Si se reactiva (cancelled -> pending), descontar stock nuevamente
     IF p_new_status = 'pending' AND v_current_status = 'cancelled' THEN
         -- Verificar stock suficiente primero
         DECLARE
@@ -98,7 +98,7 @@ BEGIN
           AND  p.IdProduct = sd.ProductId;
     END IF;
 
-    -- 7. Actualizar el estado
+    -- Actualizar el estado
     UPDATE Sale
     SET    Status     = p_new_status,
            DateUpdate = CURRENT_TIMESTAMP
@@ -111,6 +111,3 @@ EXCEPTION
         RETURN 'Error al actualizar el estado: ' || SQLERRM;
 END;
 $$;
-
-COMMENT ON FUNCTION update_sale_status IS
-    'Cambia el Status de una venta con validación de transiciones permitidas y ajuste de stock.';
